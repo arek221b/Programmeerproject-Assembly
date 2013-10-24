@@ -1,4 +1,4 @@
-## Enkele handige links die ik heb gevonden:
+## Some usefull links:
 
 1. http://www.computing.dcu.ie/~ray/teaching/CA296/notes/8086_bios_and_dos_interrupts.html
 
