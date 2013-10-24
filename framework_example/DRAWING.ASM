@@ -1,15 +1,9 @@
-; ==============================================================================
-; Example for buffered drawing in mode 13h.
-; Example showing palette manipulation via port IO.
-; Example for a very generic game-loop.
-; ==============================================================================
 .MODEL large	; multiple data segments and multiple code segments
 .STACK 2048  	; stack
 
 ; --- INCLUDES -----------------------------------------------------------------
 
 include VIDEO.INC
-include RAND.INC
 include KEYB.INC
 
 ; --- MACROS AND CONSTANTS -----------------------------------------------------
@@ -17,11 +11,11 @@ include KEYB.INC
 ; Other constants	
 SCREENW		equ 320
 SCREENH		equ 200
+SPEED_BAR	equ 10
 
 ; --- DATA SEGMENT -------------------------------------------------------------
 .DATA        ; data segment, variables
 oldVideoMode	db ?
-
 hardOffset	dw 0 ; test variable
 
 ; --- SCREEN BUFFER ------------------------------------------------------------
@@ -34,9 +28,6 @@ screenBuffer	db 64000 dup(?)	; the 64000 bytes for the screen
 main PROC NEAR
 	mov	ax, @data	; get data segment address
 	mov	ds, ax		; set DS to data segment
-
-	; Initialize random number generator
-	call	randInit
 	
 	; Install our own keyboard handler
 	call	installKeyboardHandler
@@ -56,12 +47,21 @@ main PROC NEAR
 	call	setVideoMode
 	mov		[oldVideoMode], al
 	
-@main_loop:	
-	;call	updateWorld	; this would contain the game code (like AI)
-
-	call	renderWorld	; draws the world
+@main_loop:
+	call	clearScreenBuffer
 	
-	call	handleInput	; handle user input
+	; draw a  rectangle
+	mov ax, 30
+	push	ax
+	mov ax, 5
+	push	ax
+	call 	drawRect
+
+	; draw the screen buffer
+	call 	updateScreen
+	
+	; handle user input
+	call	handleInput
 	cmp		al, 0
 	jz		@main_loop
 	
@@ -88,8 +88,7 @@ fadeToBlack PROC NEAR
 	mov	ax, offset palette
 	push	ax
 	call	paletteInitFade
-@@:
-	waitVBlank
+@@:	waitVBlank
 	call	paletteNextFade
 	test	ax, ax
 	jnz	@B
@@ -136,7 +135,7 @@ updateScreen PROC NEAR
 	mov		si, offset screenBuffer
 	mov		ax, 0a000h	; video memory
 	mov		es, ax
-	xor		di, di	; start at pixel 0
+	xor		di, di
 	
 	cld
 	mov		cx, 64000 / 2
@@ -153,31 +152,10 @@ updateScreen PROC NEAR
 	ret		0
 updateScreen ENDP
 
-renderWorld PROC NEAR
-	push	ax
-	
-	call	clearScreenBuffer
-
-	; draw a random rectangle
-	call	rand
-	and		ax, 0ffh
-	push	ax
-	call	rand
-	and		ax, 07fh
-	push	ax
-	call 	drawRect
-
-	; draw the screen buffer
-	call 	updateScreen
-	
-	pop	ax
-	ret	0
-renderWorld ENDP
-
 ; Reads keyboard buffer and acts (returns non-zero if loop should end, 0 otherwise)
 handleInput PROC NEAR
 	push	es
-
+	
 	mov	ax, seg __keysActive
 	mov	es, ax
 
@@ -185,30 +163,19 @@ handleInput PROC NEAR
 	mov	al, es:[__keysActive]
 	cmp	al, 0
 	jz	@done		; no key pressed
-
-	; handle keys
-	mov	al, es:[__keyboardState][SCANCODE_UP]	; test UP key
-	cmp	al, 0
-	jz @F	; jump next
-	; call some function to handle this key
-	mov	ax, SCREENW
-	sub [hardOffset], ax
-	sub [hardOffset], ax
-@@:
-	mov	al, es:[__keyboardState][SCANCODE_DOWN]	; test DOWN key
-	cmp	al, 0
-	jz @F	; jump next
-	; call some function to handle this key
-	mov	ax, SCREENW
-	add [hardOffset], ax
-	add [hardOffset], ax
-@@:
+	
 	mov	al, es:[__keyboardState][SCANCODE_LEFT]	; test LEFT key
 	cmp	al, 0
 	jz @F	; jump next
 	; call some function to handle this key
-	dec [hardOffset]
-	dec [hardOffset]
+	dec [hardOffset]	
+	dec [hardOffset]	
+	dec [hardOffset]	
+	dec [hardOffset]	
+	dec [hardOffset]	
+	dec [hardOffset]	
+	dec [hardOffset]	
+	
 @@:
 	mov	al, es:[__keyboardState][SCANCODE_RIGHT]	; test RIGHT key
 	cmp	al, 0
@@ -216,8 +183,13 @@ handleInput PROC NEAR
 	; call some function to handle this key
 	inc [hardOffset]
 	inc [hardOffset]
+	inc [hardOffset]
+	inc [hardOffset]
+	inc [hardOffset]
+	inc [hardOffset]
+	inc [hardOffset]	
+
 @@:
-	
 	; finally, let's put the ESC key status as return value in AX
 	mov	al, es:[__keyboardState][SCANCODE_ESC]	; test ESC
 
