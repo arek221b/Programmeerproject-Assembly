@@ -11,12 +11,17 @@ include KEYB.INC
 ; Other constants	
 SCREENW		equ 320
 SCREENH		equ 200
-SPEED_BAR	equ 10
+SPEED_BAR	equ 8
+BarWidthorg	equ 30
+BarHeight	equ 3
 
 ; --- DATA SEGMENT -------------------------------------------------------------
 .DATA        ; data segment, variables
 oldVideoMode	db ?
-hardOffset	dw 0 ; test variable
+posBAR dw ?
+barWIDTH dw ?
+posXorg db 160
+posYorg db 50 
 
 ; --- SCREEN BUFFER ------------------------------------------------------------
 .FARDATA?	; segment that contains the screenBuffer for mode 13h drawing
@@ -42,20 +47,23 @@ main PROC NEAR
 	call 	updateScreen
 	
 	; set mode 13h
-	mov		ax, 13h
+	mov	ax, 13h
 	push	ax
 	call	setVideoMode
 	mov		[oldVideoMode], al
+	
+	mov [posBAR], 25000
+	mov [barWIDTH], BarWidthorg
 	
 @main_loop:
 	call	clearScreenBuffer
 	
 	; draw a  rectangle
-	mov ax, 30
+	mov ax, [barWIDTH]
 	push	ax
-	mov ax, 5
+	mov ax, BarHeight
 	push	ax
-	call 	drawRect
+	call 	drawBar
 
 	; draw the screen buffer
 	call 	updateScreen
@@ -108,7 +116,7 @@ clearScreenBuffer PROC NEAR
 	mov		ax, seg screenBuffer
 	mov		es, ax
 	mov		di, offset screenBuffer
-	mov		cx, 64000 / 2
+	mov		cx, 64000/2
 	xor		ax, ax
 	rep		stosw
 	
@@ -155,6 +163,8 @@ updateScreen ENDP
 ; Reads keyboard buffer and acts (returns non-zero if loop should end, 0 otherwise)
 handleInput PROC NEAR
 	push	es
+	push 	dx
+	push	bx
 	
 	mov	ax, seg __keysActive
 	mov	es, ax
@@ -168,39 +178,77 @@ handleInput PROC NEAR
 	cmp	al, 0
 	jz @F	; jump next
 	; call some function to handle this key
-	dec [hardOffset]	
-	dec [hardOffset]	
-	dec [hardOffset]	
-	dec [hardOffset]	
-	dec [hardOffset]	
-	dec [hardOffset]	
-	dec [hardOffset]	
+	mov	ax, [posBAR]
+	mov cx, SCREENW
+	
+	;calculate distance from left edge of the screen
+modloop:		
+	cwd		; sign extend to DX:AX (32-bit)
+	idiv	cx	; divide DX:AX by cx
+				; result in AX, remainder in DX
+	cmp	dx, SCREENW
+	jg modloop
+	cmp dx, 0
+	jz @F
+	mov	cx, SPEED_BAR
+	cmp 	dx, cx
+	jge 	movebarLeft
+	mov 	cx, dx ; put bar to the edge
+movebarLeft:	
+	neg cx
+	add [posBAR], cx
 	
 @@:
 	mov	al, es:[__keyboardState][SCANCODE_RIGHT]	; test RIGHT key
 	cmp	al, 0
 	jz @F	; jump next
 	; call some function to handle this key
-	inc [hardOffset]
-	inc [hardOffset]
-	inc [hardOffset]
-	inc [hardOffset]
-	inc [hardOffset]
-	inc [hardOffset]
-	inc [hardOffset]	
+	mov	ax, [posBAR]
+	mov 	cx, SCREENW
+	;calculate distance from left edge of the screen
+modloop2:		
+	cwd		; sign extend to DX:AX (32-bit)
+	idiv	cx	; divide DX:AX by cx
+					; result in AX, remainder in DX
+	cmp	dx, SCREENW
+	jg modloop2
+	neg dx
+	add dx, SCREENW
+	mov ax, [barWIDTH]
+	neg ax
+	add dx, ax
+	
+	cmp dx, 0
+	jz @F
+	mov	cx, SPEED_BAR
+	cmp 	dx, cx
+	jge 	movebarRight
+	mov 	cx, dx ; put bar to the edge
+movebarRight:	
+		add [posBAR], cx
+
+@@:
+	mov	al, es:[__keyboardState][SCANCODE_UP]	; test RIGHT key
+	cmp	al, 0
+	jz @F	; jump next
+	mov ax, [barWIDTH]
+	add ax, 10
+	mov [barWIDTH], ax
 
 @@:
 	; finally, let's put the ESC key status as return value in AX
 	mov	al, es:[__keyboardState][SCANCODE_ESC]	; test ESC
 
 @done:
+	pop 	bx
+	pop	dx
 	pop	es
 	ret 0
 handleInput ENDP
 
 ; Draw a rectangle at the center of the screen buffer.
 ; W, H passed on stack.
-drawRect PROC NEAR
+drawBar PROC NEAR
 	push	bp
 	mov	bp, sp
 	
@@ -215,53 +263,21 @@ drawRect PROC NEAR
 	mov	ax, seg screenBuffer
 	mov	es, ax
 	
-	; Calculate posX
-	mov	ax, [bp + 4][2]
-	neg	ax
-	add	ax, SCREENW
-	shr	ax, 1
-	mov	bx, ax		; posX is in BX now
-	
-	; Calculate posY
-	mov	ax, [bp + 4][0]
-	neg	ax
-	add	ax, SCREENH
-	shr	ax, 1		; and posY is in AX
-	
-	; Calculate offset of top-left corner
-	mov	dx, SCREENW
-	mul	dx		; AX = posY * SCREENW
-	add	ax, bx		; AX now contains start offset of rectangle
+	mov 	ax, [posBAR]
 	add	ax, offset screenBuffer
-	add	ax, [hardOffset]
 	
-	; Draw upper horizontal line
+	mov	cx, [bp + 4][0]	; rect Height
 	mov	di, ax
-	mov	cx, [bp + 4][2]	; rect W
+drawloop:
+	push cx	
+	mov	cx, [bp + 4][2]	; rect Width
 	mov	al, 15	; color
 	cld
 	rep	stosb	; draw	
-	
-	; Draw right vertical line	
-	mov		cx, [bp + 4][0]	; rect H
-	dec	di
-@@:
-	mov	es:[di], al	; set pixel
+	sub	di, [bp + 4][2]
 	add	di, SCREENW	; jump to next pixel (on next line)
-	loop	@B
-	
-	; Draw bottom horizontal line
-	mov	cx, [bp+4][2]	; rect W
-	std	; count backwards
-	rep	stosb	; draw
-	
-	; Draw left vertical line
-	mov	cx, [bp + 4][0]	; rect H
-	inc di
-@@:
-	mov	es:[di], al	; set pixel
-	sub	di, SCREENW	; jump to next pixel (on next line)
-	loop	@B
+	pop 	cx
+	loop	drawloop
 
 	; We are done
 	pop	es
@@ -273,7 +289,79 @@ drawRect PROC NEAR
 	; return
 	pop	bp
 	ret	4
-drawRect ENDP
+drawBar ENDP
+
+printint PROC NEAR
+	; argument/local variables addresses
+	argBytes EQU 2 ; EQU === equates to
+	arg1 EQU [bp + 4][0] 
+	; code
+	push	bp	; save dynamic link
+	mov	bp, sp	; update bp
+	; save context on stack
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	si	
+	; load param in bx
+	mov	bx, arg1	; near proc, one word return address
+	; handle special case of zero
+	test	bx, 0FFFFh ; test if bx is negative
+	jnz	@F	; jmp forward to next @@ label
+	mov	ah, 02h
+	mov	dl, '0'
+	int	21h		; print the '0' character
+	jmp	@printint_done
+@@:
+	; prepare powers-of-ten on stack
+	mov	ax, 1
+	push	ax
+	mov	ax, 10
+	push	ax
+	mov	ax, 100
+	push	ax
+	mov	ax, 1000
+	push	ax
+	mov	ax, 10000
+	push	ax
+	; from now on bx is strictly positive
+	; determine largest power of ten smaller than bx
+	; init si to point to first element of powersoften array
+	; while bx < cx, pop cx 
+@@:
+	pop	cx
+	cmp	bx, cx
+	jb	@B	; jmp back to @@ label
+@@:
+	; ok now print digits
+	mov	ax, bx
+	cwd		; sign extend to DX:AX (32-bit)
+	idiv	cx	; divide DX:AX by current power of ten
+				; result in AX, remainder in DX
+	mov	bx, dx	; move remainder to bx
+	mov	ah, 02h	; print one character
+	mov	dl, al	; al contains the digit, move into dl
+	add	dl, 48	; add 48 to convert it to ASCII digit
+	int	21h	; call DOS function
+	; was this the last digit? i.e. [si] equals 1
+	cmp	cx, 1
+	je	@printint_done
+	pop	cx	; next power of ten
+	jmp	@B ; repeat for next digit
+@printint_done:
+	; restore context (reverse pop the registers)
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	; restore sp and bp
+	mov	sp, bp
+	pop	bp
+	; return freeing param from stack (2 bytes)
+	ret	argBytes
+printint ENDP
 
 ; _------------------------------- END OF CODE ---------------------------------
 END main
