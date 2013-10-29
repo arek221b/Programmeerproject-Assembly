@@ -15,6 +15,8 @@ SPEED_BAR	equ 8
 BarWidthorg	equ 30
 BarHeight	equ 3
 beginpixel  equ 56000
+balheight   equ 2
+balwidth    equ 2
 
 
 
@@ -25,7 +27,7 @@ posBAR dw 100
 barWIDTH dw ?
 posXorg db 160
 posYorg db 50 
-
+posbal dw 2700
 
 ; --- SCREEN BUFFER ------------------------------------------------------------
 .FARDATA?	; segment that contains the screenBuffer for mode 13h drawing
@@ -61,6 +63,9 @@ main PROC NEAR
 @main_loop:
 	call	clearScreenBuffer
 	
+	;draw bal
+	
+	call drawbal
 	; draw a  rectangle
 	mov ax, [barWIDTH]
 	push	ax
@@ -255,6 +260,7 @@ drawBar PROC NEAR
 	
 	mov	cx, [bp + 4][0]	; rect Height
 	mov	di, ax
+	
 drawloop:
 	push cx	
 	mov	cx, [bp + 4][2]	; rect Width
@@ -277,78 +283,53 @@ drawloop:
 	pop	bp
 	ret	4
 drawBar ENDP
+  
 
-printint PROC NEAR
-	; argument/local variables addresses
-	argBytes EQU 2 ; EQU === equates to
-	arg1 EQU [bp + 4][0] 
-	; code
-	push	bp	; save dynamic link
-	mov	bp, sp	; update bp
-	; save context on stack
+drawbal Proc NEAR
+
+	push	bp
+	mov	bp, sp
+	
 	push	ax
 	push	bx
 	push	cx
 	push	dx
-	push	si	
-	; load param in bx
-	mov	bx, arg1	; near proc, one word return address
-	; handle special case of zero
-	test	bx, 0FFFFh ; test if bx is negative
-	jnz	@F	; jmp forward to next @@ label
-	mov	ah, 02h
-	mov	dl, '0'
-	int	21h		; print the '0' character
-	jmp	@printint_done
-@@:
-	; prepare powers-of-ten on stack
-	mov	ax, 1
-	push	ax
-	mov	ax, 10
-	push	ax
-	mov	ax, 100
-	push	ax
-	mov	ax, 1000
-	push	ax
-	mov	ax, 10000
-	push	ax
-	; from now on bx is strictly positive
-	; determine largest power of ten smaller than bx
-	; init si to point to first element of powersoften array
-	; while bx < cx, pop cx 
-@@:
-	pop	cx
-	cmp	bx, cx
-	jb	@B	; jmp back to @@ label
-@@:
-	; ok now print digits
-	mov	ax, bx
-	cwd		; sign extend to DX:AX (32-bit)
-	idiv	cx	; divide DX:AX by current power of ten
-				; result in AX, remainder in DX
-	mov	bx, dx	; move remainder to bx
-	mov	ah, 02h	; print one character
-	mov	dl, al	; al contains the digit, move into dl
-	add	dl, 48	; add 48 to convert it to ASCII digit
-	int	21h	; call DOS function
-	; was this the last digit? i.e. [si] equals 1
-	cmp	cx, 1
-	je	@printint_done
-	pop	cx	; next power of ten
-	jmp	@B ; repeat for next digit
-@printint_done:
-	; restore context (reverse pop the registers)
-	pop	si
+	push	di
+	push	es
+	
+	; set segment
+	mov	ax, seg screenBuffer
+	mov	es, ax
+	
+	mov 	ax, [posbal]            
+	add	ax, offset screenBuffer
+	
+	mov	cx, balheight
+	mov	di, ax
+	
+drawloop:
+	push cx	
+	mov	cx, balwidth
+	mov	al, 15	; color
+	cld
+	rep	stosb	; draw	
+	sub	di, balwidth
+	add	di, SCREENW	; jump to next pixel (on next line)
+	pop 	cx
+	loop	drawloop
+
+	; We are done
+	pop	es
+	pop	di
 	pop	dx
 	pop	cx
 	pop	bx
 	pop	ax
-	; restore sp and bp
-	mov	sp, bp
+	; return
 	pop	bp
-	; return freeing param from stack (2 bytes)
-	ret	argBytes
-printint ENDP
+	ret	4
+drawbal ENDP
 
+     
 ; _------------------------------- END OF CODE ---------------------------------
 END main
