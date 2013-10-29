@@ -14,14 +14,18 @@ SCREENH		equ 200
 SPEED_BAR	equ 8
 BarWidthorg	equ 30
 BarHeight	equ 3
+beginpixel  equ 56000
+
+
 
 ; --- DATA SEGMENT -------------------------------------------------------------
 .DATA        ; data segment, variables
 oldVideoMode	db ?
-posBAR dw ?
+posBAR dw 100
 barWIDTH dw ?
 posXorg db 160
 posYorg db 50 
+
 
 ; --- SCREEN BUFFER ------------------------------------------------------------
 .FARDATA?	; segment that contains the screenBuffer for mode 13h drawing
@@ -40,7 +44,7 @@ main PROC NEAR
 	; fade to black
 	call	fadeToBlack
 	
-	; clear video buffer
+	; clear videoset buffer
 	call	clearScreenBuffer
 
 	; draw the screen buffer
@@ -52,7 +56,6 @@ main PROC NEAR
 	call	setVideoMode
 	mov		[oldVideoMode], al
 	
-	mov [posBAR], 25000
 	mov [barWIDTH], BarWidthorg
 	
 @main_loop:
@@ -178,16 +181,7 @@ handleInput PROC NEAR
 	cmp	al, 0
 	jz @F	; jump next
 	; call some function to handle this key
-	mov	ax, [posBAR]
-	mov cx, SCREENW
-	
-	;calculate distance from left edge of the screen
-modloop:		
-	cwd		; sign extend to DX:AX (32-bit)
-	idiv	cx	; divide DX:AX by cx
-				; result in AX, remainder in DX
-	cmp	dx, SCREENW
-	jg modloop
+	mov dx, [posBAR]
 	cmp dx, 0
 	jz @F
 	mov	cx, SPEED_BAR
@@ -203,15 +197,7 @@ movebarLeft:
 	cmp	al, 0
 	jz @F	; jump next
 	; call some function to handle this key
-	mov	ax, [posBAR]
-	mov 	cx, SCREENW
-	;calculate distance from left edge of the screen
-modloop2:		
-	cwd		; sign extend to DX:AX (32-bit)
-	idiv	cx	; divide DX:AX by cx
-					; result in AX, remainder in DX
-	cmp	dx, SCREENW
-	jg modloop2
+	mov	dx, [posBAR]
 	neg dx
 	add dx, SCREENW
 	mov ax, [barWIDTH]
@@ -263,7 +249,8 @@ drawBar PROC NEAR
 	mov	ax, seg screenBuffer
 	mov	es, ax
 	
-	mov 	ax, [posBAR]
+	mov 	ax, [posBAR]            
+	add ax, beginpixel
 	add	ax, offset screenBuffer
 	
 	mov	cx, [bp + 4][0]	; rect Height
