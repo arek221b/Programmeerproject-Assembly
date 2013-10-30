@@ -6,7 +6,7 @@
 include VIDEO.INC
 include KEYB.INC
 
-; --- MACROS AND CONSTANTS -----------------------------------------------------
+; --- CONSTANTS ---------------------------------------------------------------
 
 ; Other constants	
 SCREENW		equ 320
@@ -15,19 +15,35 @@ SPEED_BAR	equ 8
 BarWidthorg	equ 30
 BarHeight	equ 3
 beginpixel  equ 56000
-ballheight   equ 2
-ballwidth    equ 2
-
+ballheight   equ 3
+ballwidth    equ 3
 
 
 ; --- DATA SEGMENT -------------------------------------------------------------
 .DATA        ; data segment, variables
 oldVideoMode	db ?
+
+;BAR
 posBAR dw 100
-barWIDTH dw ?
-posXorg db 160
-posYorg db 50 
-posball dw 2700
+widthBAR dw ?
+
+;BALL
+BALL	 	word 6,6	
+			byte 0,0,1,1,0,0 
+			byte 0,1,1,1,1,0
+			byte 1,1,1,1,1,1
+			byte 1,1,1,1,1,1
+			byte 0,1,1,1,1,0
+			byte 0,0,1,1,0,0
+SIZEOFball equ $-BALL
+BALLcolour	db SIZEOFball dup(15)
+posBALL dw 150, 30 ;pos x en y
+speedBALL dw -5, 2
+
+;SPECIAL
+effectTimer EQU 100
+longBARtime dw 0 ;timer for long bar
+
 
 ; --- SCREEN BUFFER ------------------------------------------------------------
 .FARDATA?	; segment that contains the screenBuffer for mode 13h drawing
@@ -36,6 +52,8 @@ screenBuffer	db 64000 dup(?)	; the 64000 bytes for the screen
 
 ; --- CODE SEGMENT -------------------------------------------------------------
 .CODE        ; code segment
+
+; --- SET PROGRAM ------------------------------------
 main PROC NEAR
 	mov	ax, @data	; get data segment address
 	mov	ds, ax		; set DS to data segment
@@ -58,15 +76,17 @@ main PROC NEAR
 	call	setVideoMode
 	mov		[oldVideoMode], al
 	
-	mov [barWIDTH], BarWidthorg
+	mov [widthBAR], BarWidthorg
 	
+; --- DRAWLOOP ---------------------------------------
 @main_loop:
 	call	clearScreenBuffer
 	
-	;draw ball
-	call drawball
-	; draw a  rectangle
-	mov ax, [barWIDTH]
+	;	draw ball
+	call drawObject
+	
+	; draw bar
+	mov ax, [widthBAR]
 	push	ax
 	mov ax, BarHeight
 	push	ax
@@ -75,8 +95,40 @@ main PROC NEAR
 	; draw the screen buffer
 	call 	updateScreen
 	
+	; update position ball
+	call	updateBall
+	
+	mov ax, [posBALL][0]
+	add ax, [speedBALL][0]
+	cmp ax, 0
+	jg @F
+	neg [speedBALL][0]
+@@: 
+	add ax, [BALL][0]
+	cmp ax, SCREENW
+	jl @F 
+	neg [speedBALL][0]
+	
+@@:	mov ax, [posBALL][2]
+	add ax, [speedBALL][2]
+	cmp ax, 0
+	jg @F
+	neg [speedBALL][2]
+@@: 
+	add ax, [BALL][2]
+	cmp ax, SCREENH
+	jl @F 
+	neg [speedBALL][2]
+	
+	;decrement the timer
+@@:	dec 	[longBARtime]
+	mov 	ax, [longBARtime]
+	cmp 	ax, 0
+	jg @F   
+	mov [widthBAR], BarWidthorg ; set the orginal length of bar
+	
 	; handle user input
-	call	handleInput
+@@:	call	handleInput
 	cmp		al, 0
 	jz		@main_loop
 	
@@ -94,6 +146,7 @@ main PROC NEAR
 	int		21h			; call DOS
 main ENDP
 
+; --- FUNCTIONS -----------------------------------
 ; Fades the active colors to black
 fadeToBlack PROC NEAR
 	push	ax
@@ -167,6 +220,15 @@ updateScreen PROC NEAR
 	ret		0
 updateScreen ENDP
 
+updateBall PROC NEAR
+	mov 	ax, [posBALL][0]
+	add 	ax, [speedBALL][0]
+	mov 	[posBALL][0], ax
+	mov 	ax, [posBALL][2]
+	add 	ax, [speedBALL][2]
+	mov 	[posBALL][2], ax
+updateBall ENDP
+
 ; Reads keyboard buffer and acts (returns non-zero if loop should end, 0 otherwise)
 handleInput PROC NEAR
 	push	es
@@ -180,7 +242,7 @@ handleInput PROC NEAR
 	mov	al, es:[__keysActive]
 	cmp	al, 0
 	jz	@done		; no key pressed
-	
+		
 	mov	al, es:[__keyboardState][SCANCODE_LEFT]	; test LEFT key
 	cmp	al, 0
 	jz @F	; jump next
@@ -192,7 +254,7 @@ handleInput PROC NEAR
 	cmp 	dx, cx
 	jge 	movebarLeft
 	mov 	cx, dx ; put bar to the edge
-movebarLeft:	
+	movebarLeft:	
 	neg cx
 	add [posBAR], cx
 	
@@ -204,7 +266,7 @@ movebarLeft:
 	mov	dx, [posBAR]
 	neg dx
 	add dx, SCREENW
-	mov ax, [barWIDTH]
+	mov ax, [widthBAR]
 	neg ax
 	add dx, ax
 	
@@ -213,17 +275,22 @@ movebarLeft:
 	mov	cx, SPEED_BAR
 	cmp 	dx, cx
 	jge 	movebarRight
-	mov 	cx, dx ; put bar to the edge
-movebarRight:	
+	mov 	cx, dx 	; put bar to the edge
+	movebarRight:	
 		add [posBAR], cx
-
+	
 @@:
+	mov 	ax, [longBARtime]
+	cmp 	ax, 0
+	jg @F 
 	mov	al, es:[__keyboardState][SCANCODE_UP]	; test RIGHT key
+	mov [longBARtime], effectTimer
 	cmp	al, 0
 	jz @F	; jump next
-	mov ax, [barWIDTH]
-	add ax, 10
-	mov [barWIDTH], ax
+	mov ax, 20
+	add [widthBAR], ax
+	mov ax, 10
+	sub [posBAR], ax
 
 @@:
 	; finally, let's put the ESC key status as return value in AX
@@ -283,7 +350,7 @@ drawloop:
 	ret	4
 drawBar ENDP
   
-drawball Proc NEAR
+drawObject Proc NEAR
 
 	push	bp
 	mov	bp, sp
@@ -299,23 +366,43 @@ drawball Proc NEAR
 	mov	ax, seg screenBuffer
 	mov	es, ax
 	
-	mov 	ax, [posball]            
+	mov	ax, SCREENW
+	mov 	dx, [posBALL][2]
+	mul	dx    
+	add   ax, [posBALL][0]
 	add	ax, offset screenBuffer
-	
-	mov	cx, ballheight
 	mov	di, ax
 	
-drawball_draw:
-	push cx	
-	mov	cx, ballwidth
-	mov	al, 15	; color
-	cld
-	rep	stosb	; draw	
-	sub	di, ballwidth
-	add	di, SCREENW	; jump to next pixel (on next line)
-	pop 	cx
-	loop	drawball_draw
+	mov cx, 0 ;rij
+	mov bx, 0 ;kolom
+	mov si, 4
+	
+	draw_newline:
+		mov ax, [BALL][si]
+		cmp al,0
+		je	nextpos
+		draw:
+		mov 	al, [BALLcolour][si]
+		mov	es:[di], al	; set pixel
+		nextpos:
+		inc 	si
+		inc 	bx
+		inc	di
+		cmp	bx, [BALL][0]
+		je nextline
+		jmp draw_newline
+		nextline:
+		inc	cx
+		add 	di, SCREENW
+		cmp 	cx, [BALL][2]
+		je draw_done
+		mov	ax, [BALL][0]
+		neg 	ax
+		add	di, ax
+		add	bx, ax
+		jmp draw_newline
 
+	draw_done:	
 	; We are done
 	pop	es
 	pop	di
@@ -326,8 +413,7 @@ drawball_draw:
 	; return
 	pop	bp
 	ret	0
-drawball ENDP
+drawObject ENDP
 
-     
 ; _------------------------------- END OF CODE ---------------------------------
 END main
