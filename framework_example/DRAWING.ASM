@@ -15,8 +15,8 @@ SPEED_BAR	equ 8
 BarWidthorg	equ 30
 BarHeight	equ 3
 beginpixel  equ 56000
-balheight   equ 2
-balwidth    equ 2
+ballheight   equ 2
+ballwidth    equ 2
 
 
 
@@ -27,7 +27,7 @@ posBAR dw 100
 barWIDTH dw ?
 posXorg db 160
 posYorg db 50 
-posbal dw 2700
+posball dw 2700
 
 ; --- SCREEN BUFFER ------------------------------------------------------------
 .FARDATA?	; segment that contains the screenBuffer for mode 13h drawing
@@ -63,9 +63,8 @@ main PROC NEAR
 @main_loop:
 	call	clearScreenBuffer
 	
-	;draw bal
-	
-	call drawbal
+	;draw ball
+	call drawball
 	; draw a  rectangle
 	mov ax, [barWIDTH]
 	push	ax
@@ -255,7 +254,7 @@ drawBar PROC NEAR
 	mov	es, ax
 	
 	mov 	ax, [posBAR]            
-	add ax, beginpixel
+	add 	ax, beginpixel
 	add	ax, offset screenBuffer
 	
 	mov	cx, [bp + 4][0]	; rect Height
@@ -284,8 +283,7 @@ drawloop:
 	ret	4
 drawBar ENDP
   
-
-drawbal Proc NEAR
+drawball Proc NEAR
 
 	push	bp
 	mov	bp, sp
@@ -301,22 +299,22 @@ drawbal Proc NEAR
 	mov	ax, seg screenBuffer
 	mov	es, ax
 	
-	mov 	ax, [posbal]            
+	mov 	ax, [posball]            
 	add	ax, offset screenBuffer
 	
-	mov	cx, balheight
+	mov	cx, ballheight
 	mov	di, ax
 	
-drawloop:
+drawball_draw:
 	push cx	
-	mov	cx, balwidth
+	mov	cx, ballwidth
 	mov	al, 15	; color
 	cld
 	rep	stosb	; draw	
-	sub	di, balwidth
+	sub	di, ballwidth
 	add	di, SCREENW	; jump to next pixel (on next line)
 	pop 	cx
-	loop	drawloop
+	loop	drawball_draw
 
 	; We are done
 	pop	es
@@ -327,8 +325,8 @@ drawloop:
 	pop	ax
 	; return
 	pop	bp
-	ret	4
-drawbal ENDP
+	ret	0
+drawball ENDP
 
      
 ; _------------------------------- END OF CODE ---------------------------------
