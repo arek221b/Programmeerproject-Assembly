@@ -14,7 +14,6 @@ SCREENH		equ 200
 SPEED_BAR	equ 8
 BarWidthorg	equ 30
 BarHeight	equ 3
-beginpixel  equ 56000
 ballheight   equ 3
 ballwidth    equ 3
 
@@ -24,21 +23,21 @@ ballwidth    equ 3
 oldVideoMode	db ?
 
 ;BAR
-posBAR dw 100
+posBAR dw 100, 175
 widthBAR dw ?
 
 ;BALL
-BALL	 	word 6,6	
-			byte 0,0,1,1,0,0 
-			byte 0,1,1,1,1,0
-			byte 1,1,1,1,1,1
-			byte 1,1,1,1,1,1
-			byte 0,1,1,1,1,0
-			byte 0,0,1,1,0,0
+BALL	word 6,6	
+		byte 0,0,1,1,0,0 
+		byte 0,1,1,1,1,0
+		byte 1,1,1,1,1,1
+		byte 1,1,1,1,1,1
+		byte 0,1,1,1,1,0
+		byte 0,0,1,1,0,0
 SIZEOFball equ $-BALL
 BALLcolour	db SIZEOFball dup(15)
-posBALL dw 150, 30 ;pos x en y
-speedBALL dw -5, 2
+posBALL dw 2 dup(?) ;pos x en y
+speedBALL dw 5, -3
 
 ;SPECIAL
 effectTimer EQU 100
@@ -76,7 +75,13 @@ main PROC NEAR
 	call	setVideoMode
 	mov		[oldVideoMode], al
 	
-	mov [widthBAR], BarWidthorg
+	mov 	[widthBAR], BarWidthorg
+	mov 	ax, [posBAR][0]
+	mov	[posBALL][0], ax
+	mov	ax, [posBAR][2]
+	mov	[posBALL][2], ax
+	mov 	ax, [BALL][2]
+	sub 	[posBALL][2], ax
 	
 ; --- DRAWLOOP ---------------------------------------
 @main_loop:
@@ -320,8 +325,10 @@ drawBar PROC NEAR
 	mov	ax, seg screenBuffer
 	mov	es, ax
 	
-	mov 	ax, [posBAR]            
-	add 	ax, beginpixel
+	mov	ax, SCREENW
+	mov 	dx, [posBAR][2]
+	mul	dx    
+	add   ax, [posBAR][0]
 	add	ax, offset screenBuffer
 	
 	mov	cx, [bp + 4][0]	; rect Height
