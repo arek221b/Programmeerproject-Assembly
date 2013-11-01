@@ -28,6 +28,6 @@ waitVBlank MACRO
 	ENDM
 
 ;Bit 3: Vertical retrace
-:Set when the screen is in a vertical retrace interval. While this bit is set, video RAM can be accessed without "snow" onscreen.
+;Set when the screen is in a vertical retrace interval. While this bit is set, video RAM can be accessed without "snow" onscreen.
 
 ;During the VB the incoming data stream is not displayed on the screen. In video game systems the vertical blanking pulses are extensively used to time the plotting of new graphics/removal of old ones in order to avoid screen tearing. Screen tearing is a visual artifact in video display where a display device shows information from two or more frames in a single screen draw.
