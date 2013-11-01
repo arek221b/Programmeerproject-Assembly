@@ -211,9 +211,9 @@ updateScreen PROC NEAR
 	xor		di, di
 	
 	cld
-	mov		cx, 64000 / 2
+	mov		cx, 64000 / 2 ;set counter
 	waitVBlank	; wait for a VB (modifies AX and DX)
-	rep		movsw	; blit to screen	
+	rep		movsw	; blit to screen	/ Move word at address DS:SI to address ES:DI
 	
 	pop		es
 	pop		ds

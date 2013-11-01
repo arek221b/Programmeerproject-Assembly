@@ -16,7 +16,7 @@ waitVBlank MACRO
 	push	dx
 	mov	dx, 03dah	; VGA status port
 @waitVBlank_wait1:		; if already in VB, then wait until VB finishes
-	in	al, dx		; read status
+	in	al, dx		; read status / IN: Read from a port
 	and	al, 8		; test bit 3
 	jnz	@waitVBlank_wait1	; busy wait if in VB
 @waitVBlank_wait2:		; wait until begin of a new VB
@@ -27,3 +27,7 @@ waitVBlank MACRO
 	pop	ax
 	ENDM
 
+;Bit 3: Vertical retrace
+:Set when the screen is in a vertical retrace interval. While this bit is set, video RAM can be accessed without "snow" onscreen.
+
+;During the VB the incoming data stream is not displayed on the screen. In video game systems the vertical blanking pulses are extensively used to time the plotting of new graphics/removal of old ones in order to avoid screen tearing. Screen tearing is a visual artifact in video display where a display device shows information from two or more frames in a single screen draw.
