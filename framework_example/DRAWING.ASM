@@ -11,11 +11,8 @@ include KEYB.INC
 ; Other constants	
 SCREENW		equ 320
 SCREENH		equ 200
-SPEED_BAR	equ 8
 BarWidthorg	equ 30
 BarHeight	equ 3
-ballheight   equ 3
-ballwidth    equ 3
 
 
 ; --- DATA SEGMENT -------------------------------------------------------------
@@ -23,26 +20,30 @@ ballwidth    equ 3
 oldVideoMode	db ?
 
 ;BAR
-posBAR dw 100, 175
+posBAR 	dw 100, 175
 widthBAR dw ?
+speedBAR	equ 8
 
 ;BALL
-BALL	word 6,6	
+BALL	word 6,6	;x/y
 		byte 0,0,1,1,0,0 
 		byte 0,1,1,1,1,0
 		byte 1,1,1,1,1,1
 		byte 1,1,1,1,1,1
 		byte 0,1,1,1,1,0
 		byte 0,0,1,1,0,0
-SIZEOFball equ $-BALL
+SIZEOFball	equ $-BALL
 BALLcolour	db SIZEOFball dup(15)
-posBALL dw 2 dup(?) ;pos x en y
-speedBALL dw 5, -3
+posBALL 		dw 2 dup(?) ;pos x en y
+speedBALL 	dw 5, -3
+
+;BRICKS
+;BRICKS db x1,y1,	x2,y2, ...
+;BRICKScolour db colours
 
 ;SPECIAL
 effectTimer EQU 100
 longBARtime dw 0 ;timer for long bar
-
 
 ; --- SCREEN BUFFER ------------------------------------------------------------
 .FARDATA?	; segment that contains the screenBuffer for mode 13h drawing
@@ -88,12 +89,20 @@ main PROC NEAR
 	call	clearScreenBuffer
 	
 	;	draw ball
-	call drawObject
+;	mov 	ax, BALLcolour
+;	push 	ax
+;	mov 	ax, BALL
+;	push 	ax
+;	mov 	ax, SIZEOFball
+;	push 	ax
+;	mov 	ax, posBALL
+;	push 	ax
+	call 	drawObject
 	
 	; draw bar
-	mov ax, [widthBAR]
+	mov 	ax, [widthBAR]
 	push	ax
-	mov ax, BarHeight
+	mov 	ax, BarHeight
 	push	ax
 	call 	drawBar
 
@@ -102,6 +111,8 @@ main PROC NEAR
 	
 	; update position ball
 	call	updateBall
+	
+	call paddleDetection
 	
 	mov ax, [posBALL][0]
 	add ax, [speedBALL][0]
@@ -255,7 +266,7 @@ handleInput PROC NEAR
 	mov dx, [posBAR]
 	cmp dx, 0
 	jz @F
-	mov	cx, SPEED_BAR
+	mov	cx, speedBAR
 	cmp 	dx, cx
 	jge 	movebarLeft
 	mov 	cx, dx ; put bar to the edge
@@ -277,7 +288,7 @@ handleInput PROC NEAR
 	
 	cmp dx, 0
 	jz @F
-	mov	cx, SPEED_BAR
+	mov	cx, speedBAR
 	cmp 	dx, cx
 	jge 	movebarRight
 	mov 	cx, dx 	; put bar to the edge
@@ -308,6 +319,80 @@ handleInput PROC NEAR
 	ret 0
 handleInput ENDP
 
+; --- HANDLE DETECTION ----------------------------
+newBallprop PROC NEAR
+;	- verzekerd nieuwe pos: dus vector -  afstand tot het object = offset van object
+;	- neg vector(x of y) afh van boven/onder of rechts/links
+; return: 0
+newBallprop ENDP
+
+
+; miscchien gezamelijke functie
+WallDetection PROC NEAR
+; detecteert of er aanraking is met de wall op stap + 1
+; return: afstand tot de wall
+WallDetection ENDP
+
+paddleDetection PROC NEAR
+; detecteert of er aanraking is met de paddle op stap + 1
+; return afstand tot de paddle en boven/onder (of rechts/links)
+
+	push	bp
+	mov	bp, sp
+	
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	di
+	push	es
+	
+	mov ax, [posBALL][2]
+	add ax, [speedBALL][2]
+	add ax, [BALL][2]
+	cmp ax, [posBAR][2]
+	jl paddleDetection_done
+	
+	mov ax, [posBALL][0]
+	add ax, [speedBALL][0]
+	mov bx, ax
+	
+	; eerste vergelijking
+	mov ax, [posBAR][0]
+	dec ax
+	add ax, [widthBAR]
+	cmp bx, ax
+	jg paddleDetection_done
+	
+	mov ax, [posBAR][0]
+	inc ax
+	sub ax, [BALL][0]
+	cmp bx, ax
+	jl paddleDetection_done
+	
+	mov ax, [speedBALL][2]
+	neg ax
+	mov [speedBALL][2], ax
+
+	paddleDetection_done:
+	; We are done
+	pop	es
+	pop	di
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	; return
+	pop	bp
+	ret	0
+paddleDetection ENDP
+
+brickDetection PROC NEAR
+; detecteert of er aanraking is met de object op stap + 1
+; return afstand tot de paddle en boven/onder of rechts/links
+brickDetection ENDP
+
+; --- DRAWING -------------------------------------
 ; Draw a rectangle at the center of the screen buffer.
 ; W, H passed on stack.
 drawBar PROC NEAR
