@@ -35,7 +35,7 @@ BALL	word 6,6	;x/y
 SIZEOFball	equ $-BALL
 BALLcolour	db SIZEOFball dup(15)
 posBALL 		dw 2 dup(?) ;pos x en y
-speedBALL 	dw 5, -3
+speedBALL 	dw 5, -5
 
 ;BRICKS
 ;BRICKS db x1,y1,	x2,y2, ...
@@ -105,39 +105,19 @@ main PROC NEAR
 	mov 	ax, BarHeight
 	push	ax
 	call 	drawBar
-
+	
 	; draw the screen buffer
 	call 	updateScreen
+	
+	call paddleDetection
+	
+	call wallDetection
 	
 	; update position ball
 	call	updateBall
 	
-	call paddleDetection
-	
-	mov ax, [posBALL][0]
-	add ax, [speedBALL][0]
-	cmp ax, 0
-	jg @F
-	neg [speedBALL][0]
-@@: 
-	add ax, [BALL][0]
-	cmp ax, SCREENW
-	jl @F 
-	neg [speedBALL][0]
-	
-@@:	mov ax, [posBALL][2]
-	add ax, [speedBALL][2]
-	cmp ax, 0
-	jg @F
-	neg [speedBALL][2]
-@@: 
-	add ax, [BALL][2]
-	cmp ax, SCREENH
-	jl @F 
-	neg [speedBALL][2]
-	
 	;decrement the timer
-@@:	dec 	[longBARtime]
+	dec 	[longBARtime]
 	mov 	ax, [longBARtime]
 	cmp 	ax, 0
 	jg @F   
@@ -148,18 +128,7 @@ main PROC NEAR
 	cmp		al, 0
 	jz		@main_loop
 	
-	; Restore original keyboard handler
-	call	uninstallKeyboardHandler
-
-	; Restore original video mode
-	mov		al, [oldVideoMode]
-	xor		ah, ah
-	push	ax
-	call	setVideoMode
-	
-	; Exit to DOS
-	mov		ax, 4c00h	; exit to DOS function, return code 00h
-	int		21h			; call DOS
+	call endProgram
 main ENDP
 
 ; --- FUNCTIONS -----------------------------------
@@ -308,6 +277,13 @@ handleInput PROC NEAR
 	mov ax, 10
 	sub [posBAR], ax
 
+	@@:
+		mov	al, es:[__keyboardState][SCANCODE_TAB]	; test RIGHT key
+		cmp	al, 0
+		jz @F	; jump next
+		call beep
+
+
 @@:
 	; finally, let's put the ESC key status as return value in AX
 	mov	al, es:[__keyboardState][SCANCODE_ESC]	; test ESC
@@ -328,10 +304,55 @@ newBallprop ENDP
 
 
 ; miscchien gezamelijke functie
-WallDetection PROC NEAR
+wallDetection PROC NEAR
 ; detecteert of er aanraking is met de wall op stap + 1
 ; return: afstand tot de wall
-WallDetection ENDP
+	push	bp
+	mov	bp, sp
+
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	di
+	push	es
+
+	mov ax, [posBALL][0]
+	add ax, [speedBALL][0]
+	
+	cmp ax, 0
+	jg @F
+	neg [speedBALL][0]
+@@: 
+	add ax, [BALL][0]
+	cmp ax, SCREENW
+	jl @F 
+	neg [speedBALL][0]
+	
+@@:	mov ax, [posBALL][2]
+	add ax, [speedBALL][2]
+	cmp ax, 0
+	jg @F
+	neg [speedBALL][2]
+@@: 
+	add ax, [BALL][2]
+	cmp ax, SCREENH
+	jl @F 
+	call endProgram
+
+@@:
+	; We are done
+	pop	es
+	pop	di
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	; return
+	pop	bp
+	ret	0
+
+wallDetection ENDP
 
 paddleDetection PROC NEAR
 ; detecteert of er aanraking is met de paddle op stap + 1
@@ -506,6 +527,70 @@ drawObject Proc NEAR
 	pop	bp
 	ret	0
 drawObject ENDP
+
+endProgram PROC NEAR
+
+	; Restore original keyboard handler
+	call	uninstallKeyboardHandler
+
+	; Restore original video mode
+	mov		al, [oldVideoMode]
+	xor		ah, ah
+	push	ax
+	call	setVideoMode
+
+	; Exit to DOS
+	mov		ax, 4c00h	; exit to DOS function, return code 00h
+	int		21h			; call DOS
+
+endProgram ENDP
+
+beep PROC NEAR
+
+MOV     DX,2000          ; Number of times to repeat whole routine.
+
+MOV     BX,1             ; Frequency value.
+
+MOV     AL, 10110110B    ; The Magic Number (use this binary number only)
+OUT     43H, AL          ; Send it to the initializing port 43H Timer 2.
+
+NEXT_FREQUENCY:          ; This is were we will jump back to 2000 times.
+
+MOV     AX, BX           ; Move our Frequency value into AX.
+
+OUT     42H, AL          ; Send LSB to port 42H.
+MOV     AL, AH           ; Move MSB into AL  
+OUT     42H, AL          ; Send MSB to port 42H.
+
+IN      AL, 61H          ; Get current value of port 61H.
+OR      AL, 00000011B    ; OR AL to this value, forcing first two bits high.
+OUT     61H, AL          ; Copy it to port 61H of the PPI Chip
+                         ; to turn ON the speaker.
+
+MOV     CX, 100          ; Repeat loop 100 times
+DELAY_LOOP:              ; Here is where we loop back too.
+LOOP    DELAY_LOOP       ; Jump repeatedly to DELAY_LOOP until CX = 0
+
+
+INC     BX               ; Incrementing the value of BX lowers 
+                         ; the frequency each time we repeat the
+                         ; whole routine
+
+DEC     DX               ; Decrement repeat routine count
+
+CMP     DX, 0            ; Is DX (repeat count) = to 0
+JNZ     NEXT_FREQUENCY   ; If not jump to NEXT_FREQUENCY
+                         ; and do whole routine again.
+
+                         ; Else DX = 0 time to turn speaker OFF
+
+IN      AL,61H           ; Get current value of port 61H.
+AND     AL,11111100B     ; AND AL to this value, forcing first two bits low.
+OUT     61H,AL           ; Copy it to port 61H of the PPI Chip
+                         ; to turn OFF the speaker.
+ret
+;Read more: http://www.intel-assembler.it/portale/5/make-sound-from-the-speaker-in-assembly/8255-8255-8284-asm-program-example.asp#ixzz2jsrMp3TO
+beep ENDP
 
 ; _------------------------------- END OF CODE ---------------------------------
 END main
