@@ -32,6 +32,7 @@ BALL	word 6,6	;x/y
 		byte 1,1,1,1,1,1
 		byte 0,1,1,1,1,0
 		byte 0,0,1,1,0,0
+		
 SIZEOFball	equ $-BALL
 BALLcolour	db SIZEOFball dup(15)
 posBALL 		dw 2 dup(?) ;pos x en y
