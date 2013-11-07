@@ -313,25 +313,36 @@ wallDetection PROC NEAR
 	mov ax, [posBALL][0]
 	add ax, [speedBALL][0]
 	
-	cmp ax, 0
-	jg @F
-	neg [speedBALL][0]
-@@: 
-	add ax, [BALL][0]
+	
+	;controleren van de linkerwall
+	
+	cmp ax, 0                 
+	jg @F                     ;jump to forward 
+	neg [speedBALL][0]        ;zet snelheid negatief
+	
+
+   ; controleren van de rechterwall
+ @@: 
+	add ax, [BALL][0]        
 	cmp ax, SCREENW
 	jl @F 
 	neg [speedBALL][0]
+	
+	
+	;controleren van de bovenkant
 	
 @@:	mov ax, [posBALL][2]
 	add ax, [speedBALL][2]
 	cmp ax, 0
 	jg @F
 	neg [speedBALL][2]
+
+    ; controleren van de onderkant
 @@: 
 	add ax, [BALL][2]
 	cmp ax, SCREENH
 	jl @F 
-	call endProgram
+	call endProgram  ;sluit alles af , videomode terugzetten, "je bent eraan!"
 
 @@:
 	; We are done
@@ -361,32 +372,36 @@ paddleDetection PROC NEAR
 	push	di
 	push	es
 	
-	mov ax, [posBALL][2]
-	add ax, [speedBALL][2]
-	add ax, [BALL][2]
-	cmp ax, [posBAR][2]
-	jl paddleDetection_done
+	mov ax, [posBALL][2]      ;nieuwe positie y coordinaten berekenen
+	add ax, [speedBALL][2]     
 	
-	mov ax, [posBALL][0]
+	add ax, [BALL][2]         ; y breedte van de bal
+	cmp ax, [posBAR][2]       ; je vergelijk de hoogte van de bal met de  de bar
+	jl paddleDetection_done   ;jump to last
+	
+	mov ax, [posBALL][0]      ; x positie updaten
 	add ax, [speedBALL][0]
-	mov bx, ax
+	mov bx, ax                 ; ax opslagen  in bx    
 	
-	; eerste vergelijking
-	mov ax, [posBAR][0]
-	dec ax
+	; eerste vergelijking ivm de positie van de bar en de bal : rechterlimiet
+	
+	mov ax, [posBAR][0]            
+	dec ax                  ; limiet van de botsingszone
 	add ax, [widthBAR]
 	cmp bx, ax
-	jg paddleDetection_done
+	jg paddleDetection_done   ;als de je buiten de zone van de rechterlimiet  bent mag je verder spelen
+	
+	;tweede vergelijking ivm  de positie van de bar en de bal : linkerlimiet
 	
 	mov ax, [posBAR][0]
-	inc ax
-	sub ax, [BALL][0]
-	cmp bx, ax
-	jl paddleDetection_done
+	inc ax                  ; limiet van de botsingszone
+	sub ax, [BALL][0]       ; trek de breedte van de bal eraf 
+	cmp bx, ax              ; positie van de bal  moet kleiner zijn  dan de linkerlimiet
+	jl paddleDetection_done ;als het kleiner is dan de linkerlimiet dan zit je goed
 	
-	mov ax, [speedBALL][2]
-	neg ax
-	mov [speedBALL][2], ax
+	mov ax, [speedBALL][2]   ;aanpassen van de speedvector
+	neg ax                   ;inverteren
+	mov [speedBALL][2], ax   ;opslagen in speedbal
 
 	paddleDetection_done:
 	; We are done
