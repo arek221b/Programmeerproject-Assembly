@@ -439,10 +439,12 @@ paddleDetection PROC NEAR
 	push	es
 	
 	; bereken volgende geval van de y-positie van de bal
-	mov ax, [posBALL][2]    
+	mov ax, [posBALL][2]  
+	cmp ax, [posBar][2] ; als de bal reeds onder de paddle zich bevindt dan er geen colission zijn
+	jg  paddleDetection_done
 	add ax, [speedBALL][2]     
 	
-	; berekening van de afstand (y) van de bal tot de bovenkant van de paddle
+	; berekening van de offset (y) van de bal tot de bovenkant van de paddle
 	add ax, [BALL][2]         	; optellen van hoogte van de bal
 	sub ax, [posBAR][2]			
 	mov cx, ax						; opslaan
@@ -463,7 +465,7 @@ paddleDetection PROC NEAR
 	;linkerlimiet van de bostingszone
 	
 	mov ax, [posBAR][0] 			; limiet van de botsingszone
-	sub ax, [BALL][0]       	; trek de breedte van de bal eraf 
+	;sub ax, [BALL][0]       	; trek de breedte van de bal eraf 
 	cmp bx, ax              	
 	jl paddleDetection_done 	; als het kleiner is dan de linkerlimiet dan buiten botsingszone
 	
