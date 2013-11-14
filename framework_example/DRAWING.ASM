@@ -128,6 +128,8 @@ main PROC NEAR
 	; draw the screen buffer
 	call 	updateScreen
 	
+	call brickDetection
+	
 	call paddleDetection
 	
 	call wallDetection
