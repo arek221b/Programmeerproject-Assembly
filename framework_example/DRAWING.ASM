@@ -405,7 +405,7 @@ wallDetection PROC NEAR
 	mov ax, [posBALL][2]
 	add ax, [speedBALL][2]
 	add ax, [BALL][2]
-	sub ax, SCREENH
+	sub ax, blimit
 	cmp ax, 0
 	jle wallDetection_done 
 	call endProgram  ;sluit alles af , videomode terugzetten, "je bent eraan!"
@@ -465,6 +465,7 @@ paddleDetection PROC NEAR
 	;linkerlimiet van de bostingszone
 	
 	mov ax, [posBAR][0] 			; limiet van de botsingszone
+	sub ax, [BALL][0]
 	;sub ax, [BALL][0]       	; trek de breedte van de bal eraf 
 	cmp bx, ax              	
 	jl paddleDetection_done 	; als het kleiner is dan de linkerlimiet dan buiten botsingszone
@@ -568,18 +569,20 @@ drawObject Proc NEAR
 	mov	ax, seg screenBuffer
 	mov	es, ax
 	
+	mov 	si, [bp + 4] ; adress of position
+	
 	mov	ax, SCREENW
-	mov 	dx, [posBALL][2]
+	mov 	dx, [si][2]
 	mul	dx    
-	add   ax, [posBALL][0]
+	add   ax, [si][0]
 	add	ax, offset screenBuffer
 	mov	di, ax
 	
-	mov cx, 0 ;rij
-	mov bx, 0 ;kolom
+	mov cx, 0 ; rij
+	mov bx, 0 ; kolom
 	mov si, 4
 	
-	draw_newline:
+	draw_newline: 
 		mov ax, [BALL][si]
 		cmp al,0
 		je	nextpos
