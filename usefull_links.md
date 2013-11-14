@@ -12,6 +12,11 @@
 
 6. http://muruganad.com/8086/
 
+7. http://www.cs.virginia.edu/~evans/cs216/guides/x86.html
+8. http://www.tech-recipes.com/rx/1250/ (uitleg jump conditions)
+
+
+
 ## GAME link
 
 http://www.officegamespot.com/arcade/arkanoid.htm
