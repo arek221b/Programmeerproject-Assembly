@@ -11,8 +11,13 @@ include KEYB.INC
 ; Other constants	
 SCREENW		equ 320
 SCREENH		equ 200
-BarWidthorg	equ 30
+BarWidthorg	equ 31
 BarHeight	equ 3
+
+rlimit	equ 300	; right screen limit
+llimit	equ 10	; left screen limit
+ulimit	equ 10	; upper screen limit
+blimit	equ 190	; buttom screen limit
 
 
 ; --- DATA SEGMENT -------------------------------------------------------------
@@ -20,7 +25,7 @@ BarHeight	equ 3
 oldVideoMode	db ?
 
 ;BAR
-posBAR 	dw 100, 175
+posBAR 	dw 100, 150
 widthBAR dw ?
 speedBAR	equ 8
 
@@ -37,6 +42,7 @@ SIZEOFball	equ $-BALL
 BALLcolour	db SIZEOFball dup(15)   ;kleur van de bal 15 keer dupliceren
 posBALL 		dw 2 dup(?) ;pos x en y
 speedBALL 	dw 5, -5
+aangepast dw 0
 
 ;BRICKS
 brickwidth equ  100
@@ -96,14 +102,12 @@ main PROC NEAR
 	call	clearScreenBuffer
 	
 	;	draw ball
-;	mov 	ax, BALLcolour
-;	push 	ax
-;	mov 	ax, BALL
-;	push 	ax
-;	mov 	ax, SIZEOFball
-;	push 	ax
-;	mov 	ax, posBALL
-;	push 	ax
+	mov 	ax, offset BALLcolour
+	push 	ax
+	mov 	ax, offset BALL
+	push 	ax
+	mov 	ax, offset posBALL
+	push 	ax
 	call 	drawObject
 	
 	;draw brick
@@ -127,12 +131,20 @@ main PROC NEAR
 	call paddleDetection
 	
 	call wallDetection
+<<<<<<< HEAD
 	
 	call brickdetection
 	
 	; update position ball
 	call	updateBall
 	
+=======
+	cmp [aangepast], 1
+	je @F
+	call updateBall
+	@@: 
+	mov [aangepast], 0
+>>>>>>> Exact-paddle-detection
 	;decrement the timer
 	dec 	[longBARtime]
 	mov 	ax, [longBARtime]
@@ -247,45 +259,24 @@ handleInput PROC NEAR
 		
 	mov	al, es:[__keyboardState][SCANCODE_LEFT]	; test LEFT key
 	cmp	al, 0
-	jz @F	; jump next
-	; call some function to handle this key
-	mov dx, [posBAR]
-	cmp dx, 0
-	jz @F
-	mov	cx, speedBAR
-	cmp 	dx, cx
-	jge 	movebarLeft
-	mov 	cx, dx ; put bar to the edge
-	movebarLeft:	
-	neg cx
-	add [posBAR], cx
+	jz @F	; jump next	
+	mov 	ax, 1
+	push 	ax
+	call 	movePaddle
 	
 @@:
 	mov	al, es:[__keyboardState][SCANCODE_RIGHT]	; test RIGHT key
 	cmp	al, 0
 	jz @F	; jump next
-	; call some function to handle this key
-	mov	dx, [posBAR]
-	neg dx
-	add dx, SCREENW
-	mov ax, [widthBAR]
-	neg ax
-	add dx, ax
-	
-	cmp dx, 0
-	jz @F
-	mov	cx, speedBAR
-	cmp 	dx, cx
-	jge 	movebarRight
-	mov 	cx, dx 	; put bar to the edge
-	movebarRight:	
-		add [posBAR], cx
+	mov	ax, 0
+	push	ax
+	call 	movePaddle
 	
 @@:
 	mov 	ax, [longBARtime]
 	cmp 	ax, 0
 	jg @F 
-	mov	al, es:[__keyboardState][SCANCODE_UP]	; test RIGHT key
+	mov	al, es:[__keyboardState][SCANCODE_UP]	; test UP key
 	mov [longBARtime], effectTimer
 	cmp	al, 0
 	jz @F	; jump next
@@ -304,6 +295,62 @@ handleInput PROC NEAR
 	pop	es
 	ret 0
 handleInput ENDP
+
+movePaddle PROC NEAR
+; verzet de paddle naargelang de afstand tot de limieten
+; input: 1 --> linkerkant / 0 --> rechterkant
+	push	bp	
+	mov	bp, sp
+
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	di
+	push	es
+	
+	mov 	cx, [bp + 4] 
+	
+	; berekening van de afstand tot de limiet
+	mov 	ax, [posBAR][0]
+	cmp	cx, 0
+	jz	@F
+	sub 	ax, llimit
+	jmp movePaddle_compare
+	@@:
+	add	ax, [widthBAR]
+	sub	ax, rlimit
+	neg 	ax
+	
+	movePaddle_compare:
+	cmp ax, 0
+	jz movePaddle_done
+	mov	bx, speedBAR
+	cmp 	ax, bx
+	jge movePaddle_move
+	mov	bx, ax ; put bar to the edge
+	
+	movePaddle_move:
+	cmp	cx, 0
+	jz	@F
+	neg 	bx
+	@@:
+	add	[posBAR][0], bx
+
+	movePaddle_done:	
+	
+	pop	es
+	pop	di
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	; return
+	pop	bp
+
+	ret 2
+
+movePaddle ENDP
 
 ; --- HANDLE DETECTION ----------------------------
 newBallprop PROC NEAR
@@ -326,42 +373,67 @@ wallDetection PROC NEAR
 	push	dx
 	push	di
 	push	es
-
+	
+	; controleren van de left wall
+	mov 	ax, [posBALL][0]
+	add 	ax, [speedBALL][0]
+	sub	ax, llimit
+	cmp ax, 0                 
+	jge @F    ;jump to forward 
+	neg ax
+	add	ax, llimit
+	mov [posBall][0], ax
+	mov ax, [posBall][2]
+	add ax, [speedBall][2]
+	mov [posBall][2], ax
+	neg [speedBALL][0]        ;zet snelheid negatief
+	mov [aangepast], 1
+	jmp wallDetection_done
+	
+   ; controleren van de right wall
+@@:
 	mov ax, [posBALL][0]
 	add ax, [speedBALL][0]
-	
-	
-	;controleren van de linkerwall
-	
-	cmp ax, 0                 
-	jg @F                     ;jump to forward 
-	neg [speedBALL][0]        ;zet snelheid negatief
-	
-
-   ; controleren van de rechterwall
- @@: 
-	add ax, [BALL][0]        
-	cmp ax, SCREENW
-	jl @F 
+	add ax, [BALL][0]   
+	sub ax, rlimit 
+	cmp ax, 0
+	jle @F
+	mov bx, rlimit
+	sub bx, ax
+	sub bx, [BALL][0] 
+	mov [posBall][0], bx
+	mov ax, [posBall][2]
+	add ax, [speedBall][2]
 	neg [speedBALL][0]
-	
-	
-	;controleren van de bovenkant
-	
-@@:	mov ax, [posBALL][2]
+	mov [aangepast], 1
+	jmp wallDetection_done
+		
+	; controleren van de upper wall
+@@:
+	mov ax, [posBALL][2]
 	add ax, [speedBALL][2]
 	cmp ax, 0
-	jg @F
-	neg [speedBALL][2]
+	jge @F
+	neg ax
+	mov [posBall][2], ax
+	mov ax, [posBall][0]
+	add ax, [speedBall][0]
+	mov [posBall][0], ax
+	neg [speedBALL][2]        ;zet snelheid negatief
+	mov [aangepast], 1
+	jmp wallDetection_done
 
-    ; controleren van de onderkant
-@@: 
+   ; controleren van de onderkant
+@@:
+	mov ax, [posBALL][2]
+	add ax, [speedBALL][2]
 	add ax, [BALL][2]
-	cmp ax, SCREENH
-	jl @F 
+	sub ax, blimit
+	cmp ax, 0
+	jle wallDetection_done 
 	call endProgram  ;sluit alles af , videomode terugzetten, "je bent eraan!"
 
-@@:
+wallDetection_done:
 	; We are done
 	pop	es
 	pop	di
@@ -389,37 +461,57 @@ paddleDetection PROC NEAR
 	push	di
 	push	es
 	
-	mov ax, [posBALL][2]      ;nieuwe positie y coordinaten berekenen
+	; bereken volgende geval van de y-positie van de bal
+	mov ax, [posBALL][2]  
+	cmp ax, [posBar][2] ; als de bal reeds onder de paddle zich bevindt dan er geen colission zijn
+	jg  paddleDetection_done
 	add ax, [speedBALL][2]     
 	
-	add ax, [BALL][2]         ; y breedte van de bal
-	cmp ax, [posBAR][2]       ; je vergelijk de hoogte van de bal met de  de bar
-	jl paddleDetection_done   ;jump to last
+	; berekening van de offset (y) van de bal tot de bovenkant van de paddle
+	add ax, [BALL][2]         	; optellen van hoogte van de bal
+	sub ax, [posBAR][2]			
+	mov cx, ax						; opslaan
+	cmp ax, 0      				; 
+	jl paddleDetection_done   	;jump to last
 	
+<<<<<<< HEAD
 
 	mov ax, [posBALL][0]      ; x positie updaten
+=======
+	; bereken volgende geval van de x-positie van de bal
+	mov ax, [posBALL][0]      
+>>>>>>> Exact-paddle-detection
 	add ax, [speedBALL][0]
-	mov bx, ax                 ; ax opslagen  in bx    
+	mov bx, ax                 ; opslaan  
 	
-	; eerste vergelijking ivm de positie van de bar en de bal : rechterlimiet
-	
-	mov ax, [posBAR][0]            
-	dec ax                  ; limiet van de botsingszone
+	; rechterlimiet van de botsingszone
+	mov ax, [posBAR][0]       	
 	add ax, [widthBAR]
 	cmp bx, ax
-	jg paddleDetection_done   ;als de je buiten de zone van de rechterlimiet  bent mag je verder spelen
+	jg paddleDetection_done   	; als het groter is dan de rechter dan buiten botsingszone
 	
-	;tweede vergelijking ivm  de positie van de bar en de bal : linkerlimiet
+	;linkerlimiet van de bostingszone
 	
-	mov ax, [posBAR][0]
-	inc ax                  ; limiet van de botsingszone
-	sub ax, [BALL][0]       ; trek de breedte van de bal eraf 
-	cmp bx, ax              ; positie van de bal  moet kleiner zijn  dan de linkerlimiet
-	jl paddleDetection_done ;als het kleiner is dan de linkerlimiet dan zit je goed
+	mov ax, [posBAR][0] 			; limiet van de botsingszone
+	sub ax, [BALL][0]
+	;sub ax, [BALL][0]       	; trek de breedte van de bal eraf 
+	cmp bx, ax              	
+	jl paddleDetection_done 	; als het kleiner is dan de linkerlimiet dan buiten botsingszone
 	
-	mov ax, [speedBALL][2]   ;aanpassen van de speedvector
-	neg ax                   ;inverteren
-	mov [speedBALL][2], ax   ;opslagen in speedbal
+	; update y position of ball
+	mov ax, [posBar][2]
+	sub ax, [Ball][2]
+	sub ax, cx
+	mov [posBall][2], ax
+	
+	; update x position of ball
+	mov ax, [posBall][0]
+	add ax, [speedBall][0]
+	mov [posBall][0], ax
+	mov [aangepast], 1
+	
+	; update speedvector
+	neg [speedBALL][2]
 
 	paddleDetection_done:
 	; We are done
@@ -656,18 +748,20 @@ drawObject Proc NEAR
 	mov	ax, seg screenBuffer
 	mov	es, ax
 	
+	mov 	si, [bp + 4] ; adress of position
+	
 	mov	ax, SCREENW
-	mov 	dx, [posBALL][2]
+	mov 	dx, [si][2]
 	mul	dx    
-	add   ax, [posBALL][0]
+	add   ax, [si][0]
 	add	ax, offset screenBuffer
 	mov	di, ax
 	
-	mov cx, 0 ;rij
-	mov bx, 0 ;kolom
+	mov cx, 0 ; rij
+	mov bx, 0 ; kolom
 	mov si, 4
 	
-	draw_newline:
+	draw_newline: 
 		mov ax, [BALL][si]
 		cmp al,0
 		je	nextpos
@@ -702,7 +796,7 @@ drawObject Proc NEAR
 	pop	ax
 	; return
 	pop	bp
-	ret	0
+	ret	6
 drawObject ENDP
 
 endProgram PROC NEAR
@@ -721,6 +815,117 @@ endProgram PROC NEAR
 	int		21h			; call DOS
 
 endProgram ENDP
+
+printint PROC NEAR
+	; argument/local variables addresses
+	argBytes EQU 2 ; EQU === equates to
+	arg1 EQU [bp + 4][0] 
+	; code
+	push	bp	; save dynamic link
+	mov	bp, sp	; update bp
+	; save context on stack
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	si	
+	; load param in bx
+	mov	bx, arg1	; near proc, one word return address
+	; handle special case of zero
+	test	bx, 0FFFFh ; test if bx is negative
+	jnz	@F	; jmp forward to next @@ label
+	mov	ah, 02h
+	mov	dl, '0'
+	int	21h		; print the '0' character
+	jmp	@printint_done
+@@:
+	; prepare powers-of-ten on stack
+	mov	ax, 1
+	push	ax
+	mov	ax, 10
+	push	ax
+	mov	ax, 100
+	push	ax
+	mov	ax, 1000
+	push	ax
+	mov	ax, 10000
+	push	ax
+	; from now on bx is strictly positive
+	; determine largest power of ten smaller than bx
+	; init si to point to first element of powersoften array
+	; while bx < cx, pop cx 
+@@:
+	pop	cx
+	cmp	bx, cx
+	jb	@B	; jmp back to @@ label
+@@:
+	; ok now print digits
+	mov	ax, bx
+	cwd		; sign extend to DX:AX (32-bit)
+	idiv	cx	; divide DX:AX by current power of ten
+				; result in AX, remainder in DX
+	mov	bx, dx	; move remainder to bx
+	mov	ah, 02h	; print one character
+	mov	dl, al	; al contains the digit, move into dl
+	add	dl, 48	; add 48 to convert it to ASCII digit
+	int	21h	; call DOS function
+	; was this the last digit? i.e. [si] equals 1
+	cmp	cx, 1
+	je	@printint_done
+	pop	cx	; next power of ten
+	jmp	@B ; repeat for next digit
+@printint_done:
+	; restore context (reverse pop the registers)
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	; restore sp and bp
+	mov	sp, bp
+	pop	bp
+	; return freeing param from stack (2 bytes)
+	ret	argBytes
+printint ENDP
+
+; print a signed integer to stdout
+; value on stack
+printints PROC NEAR
+	; argument/local variables addresses
+	argBytes EQU 2
+	arg1 EQU [bp + 4][0]
+	; code
+	push	bp	; save dynamic link
+	mov	bp, sp	; update bp
+	; save context on stack
+	push	ax
+	push	bx
+	push	dx
+	; load param in bx
+	mov	bx, arg1	; near proc, one word return address
+	; handle special case of zero and test for sign
+	cmp	bx, 0
+	jge	@F
+	; if negative, print sign and invert
+	; print sign (int 21h, function 02h)
+	mov	ah, 2
+	mov	dl, '-'
+	int	21h
+	; invert sign of bx
+	neg	bx
+@@:
+	push	bx
+	call	printint	
+	; restore context (reverse pop the registers)
+	pop	dx
+	pop	bx
+	pop	ax
+	; restore sp and bp
+	mov	sp, bp
+	pop	bp
+	; return freeing param from stack (2 bytes)
+	ret	argBytes
+printints ENDP
 
 ; _------------------------------- END OF CODE ---------------------------------
 END main
