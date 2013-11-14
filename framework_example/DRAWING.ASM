@@ -25,7 +25,7 @@ blimit	equ 200	; buttom screen limit
 oldVideoMode	db ?
 
 ;BAR
-posBAR 	dw 100, 150
+posBAR 	dw 150, 170
 widthBAR dw ?
 speedBAR	equ 8
 
@@ -46,10 +46,10 @@ speedBALLinit	dw 5, -5
 aangepast dw 0
 
 ;BRICKS
-brickwidth equ  10
-heightBrick   equ  30
+brickwidth equ  70
+heightBrick   equ  10
 ;BRICKS db x1,y1,	x2,y2, ...
-posBrick dw 70,70 ;x en y
+posBrick dw 100,70 ;x en y
 
 ;BRICKScolour db colours
 
@@ -566,43 +566,15 @@ brickDetection PROC NEAR
 	push	di
 	push	es
 	
-	;ONDERKANT checken
-	;-----------------
-	
-	mov ax, [posBALL][2]      ;nieuwe positie y coordinaten berekenen
-	add ax, [speedBALL][2]     
-	
-	;add ax, [BALL][2]         ; y breedte van de bal
-	mov dx, [posBrick][2] 
-	add dx, [heightBrick]
-	cmp ax, dx                ; je vergelijk de hoogte van de bovenkant van bal met de onderkant van de brick
-	jg brickDetection_done    ;jump to last want je weet dat de bal onder de blok zit
-	
-	mov ax, [posBALL][0]      ; x positie updaten
-	add ax, [speedBALL][0]
-	mov bx, ax                 ; ax opslagen  in bx , in bx zit dus de x positie  
-	
-	; eerste vergelijking ivm de positie van de brick en de bal : rechterlimiet
-	
-	mov ax, [posBrick][0]            
-	dec ax                  ; limiet van de botsingszone
-	add ax, [brickwidth]       
-	cmp bx, ax
-	jg brickDetection_done   ;als de je buiten de zone van de rechterlimiet  bent mag je verder spelen
-	
-	;tweede vergelijking ivm  de positie van de brick en de bal : linkerlimiet
-	
-	mov ax, [posBrick][0]
-	inc ax                  ; limiet van de botsingszone
-	sub ax, [BALL][0]       ; trek de breedte van de bal eraf 
-	cmp bx, ax              ; positie van de bal  moet kleiner zijn  dan de linkerlimiet
-	jl brickDetection_done ;als het kleiner is dan de linkerlimiet dan zit je goed
-	
-	
-	
+	;------------------
 	;BOVENKANT checken
-	;-----------------
-	
+	;------------------
+
+
+    ;|Vergelijken of de bal erboven zit |
+    ;------------------------------------
+    
+    
 	mov ax, [posBALL][2]      ;nieuwe positie y coordinaten berekenen
 	add ax, [speedBALL][2]     
 	
@@ -612,11 +584,17 @@ brickDetection PROC NEAR
 	cmp ax, dx                ; je vergelijk de hoogte van de bovenkant van bal met de onderkant van de brick
 	jl brickDetection_done    ;jump to last want je weet dat de bal boven de blok zit
 	
+	
+   
+    ;|Vergelijken of de bal binnen de breedte zit onder de hoogte|
+    ;-------------------------------------------------------------
 	mov ax, [posBALL][0]      ; x positie updaten
 	add ax, [speedBALL][0]
 	mov bx, ax                 ; ax opslagen  in bx , in bx zit dus de x positie  
+
 	
 	; eerste vergelijking ivm de positie van de brick en de bal : rechterlimiet
+	
 	
 	mov ax, [posBrick][0]            
 	dec ax                  ; limiet van de botsingszone
@@ -624,7 +602,9 @@ brickDetection PROC NEAR
 	cmp bx, ax
 	jg brickDetection_done   ;als de je buiten de zone van de rechterlimiet  bent mag je verder spelen
 	
+	
 	;tweede vergelijking ivm  de positie van de brick en de bal : linkerlimiet
+	
 	
 	mov ax, [posBrick][0]
 	inc ax                  ; limiet van de botsingszone
@@ -633,10 +613,88 @@ brickDetection PROC NEAR
 	jl brickDetection_done ;als het kleiner is dan de linkerlimiet dan zit je goed
 	
 	
-brickcollsion: 
+
+
+
+    ;-----------------
+	;ONDERKANT checken
+	;-----------------
+	
+	
+	;|Vergelijken of de bal eronderzit |
+    ;------------------------------------
+    
+    
+    
+	mov ax, [posBALL][2]      ;nieuwe positie y coordinaten berekenen
+	add ax, [speedBALL][2]     
+	
+	;add ax, [BALL][2]         ; y breedte van de bal
+	mov dx, [posBrick][2] 
+	add dx, [heightBrick]
+	cmp ax, dx                ; je vergelijk de hoogte van de bovenkant van bal met de onderkant van de brick
+	jg brickDetection_done    ;jump to last want je weet dat de bal onder de blok zit
+	
+	
+	
+	
+	;|Vergelijken of de bal binnen de breedte zit onder de basis|
+    ;-------------------------------------------------------------
+    
+	
+	mov ax, [posBALL][0]      ; x positie updaten
+	add ax, [speedBALL][0]
+	mov bx, ax                 ; ax opslagen  in bx , in bx zit dus de x positie  
+	
+	
+	; eerste vergelijking ivm de positie van de brick en de bal : rechterlimiet
+	
+	
+	mov ax, [posBrick][0]            
+	dec ax                  ; limiet van de botsingszone
+	add ax, [brickwidth]       
+	cmp bx, ax
+	jg brickDetection_done   ;als de je buiten de zone van de rechterlimiet  bent mag je verder spelen
+	
+	
+	;tweede vergelijking ivm  de positie van de brick en de bal : linkerlimiet
+	
+	
+	mov ax, [posBrick][0]
+	inc ax                  ; limiet van de botsingszone
+	sub ax, [BALL][0]       ; trek de breedte van de bal eraf 
+	cmp bx, ax              ; positie van de bal  moet kleiner zijn  dan de linkerlimiet
+	jl brickDetection_done ;als het kleiner is dan de linkerlimiet dan zit je goed
+	
+	
+	;nu weten we dat de bal zowiezo een collision heeft, nu is de vraag welke collision
+	;dit doen we door te kijken van waar dat de bal komt
+	
+	
+	mov ax, [posBall] [0]    ;voorafgaande positie ball
+	mov bx, ax
+	;in bx zit voorgaande positie ball
+	mov ax, [posBrick] [0]
+	cmp ax, bx 
+	jg bricksidecollision
+	
+	
+	add ax, [brickwidth]
+	cmp ax, bx
+	jl bricksidecollision
+	
+brickbasiscollision:
 	mov ax, [speedBALL][2]   ;aanpassen van de speedvector
 	neg ax                   ;inverteren
 	mov [speedBALL][2], ax   ;opslagen in speedbal
+	jmp brickDetection_done
+
+
+bricksidecollision:
+    mov ax, [speedBALL][0]   ;aanpassen van de speedvector
+	neg ax                   ;inverteren
+	mov [speedBALL][0], ax   ;opslagen in speedbal
+ 
 
 brickDetection_done:
 	; We are done
