@@ -80,9 +80,6 @@ main PROC NEAR
 	
 	; clear videoset buffer
 	call	clearScreenBuffer
-
-	; draw the screen buffer
-	call 	updateScreen
 	
 	; set mode 13h
 	mov	ax, 13h
@@ -90,9 +87,12 @@ main PROC NEAR
 	call	setVideoMode
 	mov		[oldVideoMode], al
 	
+	; set initial ball conditions
 	call setInit
 	
+	; draw intitial conditions
 	call updateScreenBuffer
+	
 	; wait for spacebar to begin
 	mov	ax, seg __keysActive
 	mov	es, ax
@@ -101,33 +101,33 @@ main PROC NEAR
 		cmp	al, 0
 		je		@B
 	
-; --- DRAWLOOP ---------------------------------------
-@main_loop:
+	; begin the drawloop
+	@main_drawloop:
+
+		cmp 	[LIFE], 0
+		je @main_drawdone
+		
+		call updateScreenBuffer
 	
-	call updateScreenBuffer
+		call brickDetection
 	
-	call brickDetection
+		call paddleDetection
 	
-	call paddleDetection
-	
-	call wallDetection
-	cmp [aangepast], 1
-	je @F
-	call updateBall
-	@@: 
-	mov [aangepast], 0
-	;decrement the timer
-	dec 	[longBARtime]
-	mov 	ax, [longBARtime]
-	cmp 	ax, 0
-	jg @F   
-	mov [widthBAR], BarWidthorg ; set the orginal length of bar
-	
-	; handle user input
-	
-	@@:	cmp [LIFE], 0
-	jnz @main_loop
-	
+		call wallDetection
+		
+		call handleInput
+		
+		; update possition ball
+		cmp [aangepast], 1
+		je @F
+		call updateBall
+		@@: 
+		mov [aangepast], 0
+
+		jmp @main_drawloop
+		
+	; end program when LIFE = 0
+	@main_drawdone:
 	call endProgram
 main ENDP
 
@@ -293,32 +293,20 @@ handleInput PROC NEAR
 	push 	ax
 	call 	movePaddle
 	
-@@:
+	@@:
 	mov	al, es:[__keyboardState][SCANCODE_RIGHT]	; test RIGHT key
 	cmp	al, 0
 	jz @F	; jump next
 	mov	ax, 0
 	push	ax
 	call 	movePaddle
-	
-@@:
-	mov 	ax, [longBARtime]
-	cmp 	ax, 0
-	jg @F 
-	mov	al, es:[__keyboardState][SCANCODE_UP]	; test UP key
-	mov [longBARtime], effectTimer
-	cmp	al, 0
-	jz @F	; jump next
-	mov ax, 20
-	add [widthBAR], ax
-	mov ax, 10
-	sub [posBAR], ax
 
-@@:
+
+	@@:
 	; finally, let's put the ESC key status as return value in AX
 	mov	al, es:[__keyboardState][SCANCODE_ESC]	; test ESC
 
-@done:
+	@done:
 	pop 	bx
 	pop	dx
 	pop	es
