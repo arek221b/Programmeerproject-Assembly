@@ -17,7 +17,7 @@ BarHeight	equ 3
 rlimit	equ 300	; right screen limit
 llimit	equ 10	; left screen limit
 ulimit	equ 10	; upper screen limit
-blimit	equ 190	; buttom screen limit
+blimit	equ 200	; buttom screen limit
 
 
 ; --- DATA SEGMENT -------------------------------------------------------------
@@ -42,15 +42,18 @@ SIZEOFball	equ $-BALL
 BALLcolour	db SIZEOFball dup(15)
 posBALL 		dw 2 dup(?) ;pos x en y
 speedBALL 	dw 5, -5
+speedBALLinit	dw 5, -5 
 aangepast dw 0
 
 ;BRICKS
-brickwidth equ  100
+brickwidth equ  10
 heightBrick   equ  30
 ;BRICKS db x1,y1,	x2,y2, ...
 posBrick dw 70,70 ;x en y
 
 ;BRICKScolour db colours
+
+LIFE dw 3
 
 ;SPECIAL
 effectTimer EQU 100
@@ -87,46 +90,21 @@ main PROC NEAR
 	call	setVideoMode
 	mov		[oldVideoMode], al
 	
-	;initialiseren van start positie van de bal
+	call setInit
 	
-	mov 	[widthBAR], BarWidthorg
-	mov 	ax, [posBAR][0]
-	mov	[posBALL][0], ax
-	mov	ax, [posBAR][2]
-	mov	[posBALL][2], ax
-	mov 	ax, [BALL][2]
-	sub 	[posBALL][2], ax
+	call updateScreenBuffer
+	; wait for spacebar to begin
+	mov	ax, seg __keysActive
+	mov	es, ax
+	@@:
+		mov	al, es:[__keyboardState][SCANCODE_SPACEBAR]
+		cmp	al, 0
+		je		@B
 	
 ; --- DRAWLOOP ---------------------------------------
 @main_loop:
-	call	clearScreenBuffer
 	
-	;	draw ball
-	mov 	ax, offset BALLcolour
-	push 	ax
-	mov 	ax, offset BALL
-	push 	ax
-	mov 	ax, offset posBALL
-	push 	ax
-	call 	drawObject
-	
-	;draw brick
-	mov 	ax, [brickwidth]
-	push	ax
-	mov 	ax, [heightBrick]
-	push	ax
-	call 	drawBrick
-	
-	
-	; draw bar
-	mov 	ax, [widthBAR]
-	push	ax
-	mov 	ax, BarHeight
-	push	ax
-	call 	drawBar
-	
-	; draw the screen buffer
-	call 	updateScreen
+	call updateScreenBuffer
 	
 	call brickDetection
 	
@@ -146,12 +124,70 @@ main PROC NEAR
 	mov [widthBAR], BarWidthorg ; set the orginal length of bar
 	
 	; handle user input
-@@:	call	handleInput
-	cmp		al, 0
-	jz		@main_loop
+	
+	@@:	cmp [LIFE], 0
+	jnz @main_loop
 	
 	call endProgram
 main ENDP
+
+updateScreenBuffer PROC NEAR
+	
+	call	clearScreenBuffer
+
+	;	draw ball
+	mov 	ax, offset BALLcolour
+	push 	ax
+	mov 	ax, offset BALL
+	push 	ax
+	mov 	ax, offset posBALL
+	push 	ax
+	call 	drawObject
+
+	;draw brick
+	mov 	ax, [brickwidth]
+	push	ax
+	mov 	ax, [heightBrick]
+	push	ax
+	call 	drawBrick
+
+
+	; draw bar
+	mov 	ax, [widthBAR]
+	push	ax
+	mov 	ax, BarHeight
+	push	ax
+	call 	drawBar
+
+	; draw the screen buffer
+	call 	updateScreen
+	
+	ret 0
+	
+updateScreenBuffer ENDP
+
+setInit PROC NEAR
+	;initialisten van de vector
+	
+	mov ax, [speedBALLinit][0]
+	mov [speedBALL][0], ax
+	mov ax, [speedBALLinit][2]
+	mov [speedBALL][2], ax
+
+	;initialiseren van start positie van de bal
+
+	mov 	[widthBAR], BarWidthorg
+	mov 	ax, [posBAR][0]
+	mov	[posBALL][0], ax
+	
+	mov	ax, [posBAR][2]
+	sub 	ax, [BALL][2]
+	mov 	[posBALL][2], ax
+	
+	ret 0
+
+setInit ENDP
+
 
 ; --- FUNCTIONS -----------------------------------
 ; Fades the active colors to black
@@ -424,7 +460,9 @@ wallDetection PROC NEAR
 	sub ax, blimit
 	cmp ax, 0
 	jle wallDetection_done 
-	call endProgram  ;sluit alles af , videomode terugzetten, "je bent eraan!"
+	dec [LIFE]
+	call setInit
+	  ;sluit alles af , videomode terugzetten, "je bent eraan!"
 
 wallDetection_done:
 	; We are done
@@ -667,11 +705,6 @@ drawloop:
 	pop	bp
 	ret	4
 drawBrick ENDP
-
-
-
-
-
 
 drawBar PROC NEAR
 	push	bp
