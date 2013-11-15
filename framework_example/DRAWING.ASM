@@ -54,6 +54,7 @@ posBrick dw 100,70 ;x en y
 ;BRICKScolour db colours
 
 LIFE dw 3
+MAXLIFE dw 3
 
 ;SPECIAL
 effectTimer EQU 100
@@ -92,19 +93,37 @@ main PROC NEAR
 	
 	call setInit
 	
-	call updateScreenBuffer
-	; wait for spacebar to begin
-	mov	ax, seg __keysActive
-	mov	es, ax
-	@@:
-		mov	al, es:[__keyboardState][SCANCODE_SPACEBAR]
-		cmp	al, 0
-		je		@B
+
+	
+
+start_over:
+    call updateScreenBuffer 
+			;wait for spacebar to begin
+    mov	ax, seg __keysActive
+    mov	es, ax
+   
+@@:
+	mov	al, es:[__keyboardState][SCANCODE_SPACEBAR]
+	cmp	al, 0
+	je		@B
+	jmp @main_loop
+
+start_over_decrement: 
+  dec [MAXLIFE]
+  jmp start_over
+    
+
 	
 ; --- DRAWLOOP ---------------------------------------
 @main_loop:
 	
+	mov ax, [LIFE]
+	cmp ax,[MAXLIFE]
+	jne start_over_decrement
+	
 	call updateScreenBuffer
+	
+
 	
 	call brickDetection
 	
@@ -114,7 +133,7 @@ main PROC NEAR
 	cmp [aangepast], 1
 	je @F
 	call updateBall
-	@@: 
+@@: 
 	mov [aangepast], 0
 	;decrement the timer
 	dec 	[longBARtime]
@@ -125,11 +144,15 @@ main PROC NEAR
 	
 	; handle user input
 	
-	@@:	cmp [LIFE], 0
+	
+@@:
+	cmp [LIFE], 0
 	jnz @main_loop
 	
 	call endProgram
 main ENDP
+
+
 
 updateScreenBuffer PROC NEAR
 	
