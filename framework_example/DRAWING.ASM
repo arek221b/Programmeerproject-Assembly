@@ -54,6 +54,7 @@ posBrick dw 100,70 ;x en y
 ;BRICKScolour db colours
 
 LIFE dw 3
+MAXLIFE dw 3
 
 ;SPECIAL
 effectTimer EQU 100
@@ -90,6 +91,56 @@ main PROC NEAR
 	; set initial ball conditions
 	call setInit
 	
+<<<<<<< HEAD
+
+	
+
+start_over:
+    call updateScreenBuffer 
+			;wait for spacebar to begin
+    mov	ax, seg __keysActive
+    mov	es, ax
+   
+@@:
+	mov	al, es:[__keyboardState][SCANCODE_SPACEBAR]
+	cmp	al, 0
+	je		@B
+	jmp @main_loop
+
+start_over_decrement: 
+  dec [MAXLIFE]
+  jmp start_over
+    
+
+	
+; --- DRAWLOOP ---------------------------------------
+@main_loop:
+	
+	mov ax, [LIFE]
+	cmp ax,[MAXLIFE]
+	jne start_over_decrement
+	
+	call updateScreenBuffer
+	
+
+	
+	call brickDetection
+	
+	call paddleDetection
+	
+	call wallDetection
+	cmp [aangepast], 1
+	je @F
+	call updateBall
+@@: 
+	mov [aangepast], 0
+	;decrement the timer
+	dec 	[longBARtime]
+	mov 	ax, [longBARtime]
+	cmp 	ax, 0
+	jg @F   
+	mov [widthBAR], BarWidthorg ; set the orginal length of bar
+=======
 	; draw intitial conditions
 	call updateScreenBuffer
 	
@@ -108,10 +159,18 @@ main PROC NEAR
 		je @main_drawdone
 		
 		call updateScreenBuffer
+>>>>>>> fd279ddbe55bd33cf74d0cb53fe429db7b45013c
 	
 		call brickDetection
 	
+<<<<<<< HEAD
+	
+@@:
+	cmp [LIFE], 0
+	jnz @main_loop
+=======
 		call paddleDetection
+>>>>>>> fd279ddbe55bd33cf74d0cb53fe429db7b45013c
 	
 		call wallDetection
 		
@@ -130,6 +189,8 @@ main PROC NEAR
 	@main_drawdone:
 	call endProgram
 main ENDP
+
+
 
 updateScreenBuffer PROC NEAR
 	
