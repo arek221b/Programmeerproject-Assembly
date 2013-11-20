@@ -27,7 +27,7 @@ oldVideoMode	db ?
 ;BAR
 posBAR 	dw 150, 170
 widthBAR dw ?
-speedBAR	equ 8
+speedBAR	equ 12
 
 ;BALL
 BALL	word 6,6	;x/y
@@ -44,6 +44,9 @@ posBALL 		dw 2 dup(?) ;pos x en y
 speedBALL 	dw 2 dup(?)
 speedBALLinit	dw 5, -5 
 aangepast dw 0
+
+adressObject dw ?
+adressColour dw ?
 
 ;BRICKS
 brickwidth equ  70
@@ -836,32 +839,42 @@ drawObject Proc NEAR
 	mov	di, ax
 	
 	mov cx, 0 ; rij
-	mov bx, 0 ; kolom
+	mov dx, 0 ; kolom
 	mov si, 4
 	
+	mov 	ax, [bp + 6]
+	mov 	[adressObject], ax
+	mov 	ax, [bp + 8]
+	mov 	[adressColour], ax
+	
 	draw_newline: 
-		mov ax, [BALL][si]
-		cmp al,0
+		mov 	bx, [adressObject]
+		mov 	ax, [bx][si]
+		cmp 	al,0
 		je	nextpos
 		draw:
-		mov 	al, [BALLcolour][si]
+		mov 	bx, [adressColour]
+		mov 	al, [bx][si]
 		mov	es:[di], al	; set pixel
 		nextpos:
 		inc 	si
-		inc 	bx
+		inc 	dx
 		inc	di
-		cmp	bx, [BALL][0]
+		mov 	bx, [adressObject]
+		cmp	dx, [bx][0]
 		je nextline
 		jmp draw_newline
 		nextline:
 		inc	cx
 		add 	di, SCREENW
-		cmp 	cx, [BALL][2]
+		mov 	bx, [adressObject]
+		cmp 	cx, [bx][2]
 		je draw_done
-		mov	ax, [BALL][0]
+		mov 	bx, [adressObject]
+		mov	ax, [bx][0]
 		neg 	ax
 		add	di, ax
-		add	bx, ax
+		add	dx, ax
 		jmp draw_newline
 
 	draw_done:	
