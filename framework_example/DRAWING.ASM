@@ -41,7 +41,7 @@ BALL	word 6,6	;x/y
 SIZEOFball	equ $-BALL
 BALLcolour	db SIZEOFball dup(15)
 posBALL 		dw 2 dup(?) ;pos x en y
-speedBALL 	dw 5, -5
+speedBALL 	dw 2 dup(?)
 speedBALLinit	dw 5, -5 
 aangepast dw 0
 
