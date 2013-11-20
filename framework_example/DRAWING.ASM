@@ -88,11 +88,10 @@ main PROC NEAR
 	call	setVideoMode
 	mov		[oldVideoMode], al
 	
+start_over:
 	; set initial ball conditions
 	call setInit
-	
-start_over:
-    call updateScreenBuffer 
+   call updateScreenBuffer 
 	
 	;wait for spacebar to begin
     mov	ax, seg __keysActive
@@ -138,8 +137,8 @@ start_over_decrement:
 	@@:
 	cmp [LIFE], 0	
 	jnz @main_loop
-	; end program when LIFE = 0
 	
+	; end program when LIFE = 0
 	@main_drawdone:
 	call endProgram
 main ENDP
@@ -163,7 +162,6 @@ updateScreenBuffer PROC NEAR
 	mov 	ax, [heightBrick]
 	push	ax
 	call 	drawBrick
-
 
 	; draw bar
 	mov 	ax, [widthBAR]
