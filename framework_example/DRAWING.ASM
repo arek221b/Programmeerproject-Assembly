@@ -543,8 +543,9 @@ paddleDetection PROC NEAR
 	jl paddleDetection_done   	;jump to last
 	
 	; bereken volgende geval van de x-positie van de bal
-	mov ax, [posBALL][0]      
-	add ax, [speedBALL][0]
+	mov 	ax, [speedBall][0]
+	sar	ax, 1		; slechts de helft omdat daar de plaats ong zal zijn waar het op het blakje terecht komt
+	add ax, [posBall][0] 
 	mov bx, ax                 ; opslaan  
 	
 	; rechterlimiet van de botsingszone
@@ -567,14 +568,23 @@ paddleDetection PROC NEAR
 	sub ax, cx
 	mov [posBall][2], ax
 	
-	; update x position of ball
-	mov ax, [posBall][0]
-	add ax, [speedBall][0]
-	mov [posBall][0], ax
+	; update x position of ball   
+	mov [posBall][0], bx
 	mov [aangepast], 1
 	
 	; update speedvector
-	neg [speedBALL][2]
+	mov 	ax, [BAR][0] ; berekening midden van de balk + ball (limiet grootte)
+	add	ax, [BALL][0]
+	sar	ax, 1
+	add	ax, [posBAR][0]
+	sub	ax, [BALL][0] ; bereken offset van de ball tot het midden van de limiet
+	neg	ax
+	add	ax, bx
+	sar	ax, 1
+	push ax
+	call printints
+	mov	[speedBALL][0], ax
+	neg 	[speedBALL][2]
 
 	paddleDetection_done:
 	; We are done
