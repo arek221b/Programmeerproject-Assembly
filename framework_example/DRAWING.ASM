@@ -28,7 +28,7 @@ BAR	word 30 , 3
 		byte 30 dup(1)
 		byte 30 dup(1)
 SIZEOFbar	equ $-BAR
-BARcolour	db SIZEOFbar dup(15)
+BARcolour	db SIZEOFbar dup(0)
 
 BARLONG	word 50 , 3
 			byte 50 dup(1)
@@ -46,7 +46,7 @@ BALL	word 6,6	;x/y
 		byte 0,1,1,1,1,0
 		byte 0,0,1,1,0,0
 SIZEOFball	equ $-BALL
-BALLcolour	db SIZEOFball dup(15)
+BALLcolour	db SIZEOFball dup(0)
 posBALL 		dw 2 dup(?) ;pos x en y
 speedBALL 	dw 2 dup(?)
 speedBALLinit	dw 5, -5 
@@ -56,11 +56,15 @@ adressObject dw ?
 adressColour dw ?
 
 ;BRICKS
-BRICK	word 10, 2	;x/y
+BRICK	word 10, 5	;x/y
 		byte 10 dup(1)
 		byte 10 dup(1)
+		byte 10 dup(1)
+		byte 10 dup(1)
+		byte 10 dup(1)
+		
 SIZEOFbrick	equ $-BRICK
-BRICKcolour	db SIZEOFbrick dup(15)
+BRICKcolour	db SIZEOFbrick dup(0)
 posBRICK dw 100,70 ;x en y
 
 ;BRICKS db x1,y1,	x2,y2, ...
@@ -266,11 +270,12 @@ clearScreenBuffer PROC NEAR
 	push	es
 	
 	cld
-	mov		ax, seg screenBuffer
+	mov		ax, seg screenBuffer ; Move the segment where screenBuffer is located
 	mov		es, ax
 	mov		di, offset screenBuffer
-	mov		cx, 64000/2
-	xor		ax, ax
+	mov		cx, 64000/2 ; ax (2 elementen van de screenBuffer) 2 bits groot
+	mov 		al, 15
+	mov		ah, 15
 	rep		stosw
 	
 	pop	es
@@ -581,8 +586,6 @@ paddleDetection PROC NEAR
 	neg	ax
 	add	ax, bx
 	sar	ax, 1
-	push ax
-	call printints
 	mov	[speedBALL][0], ax
 	neg 	[speedBALL][2]
 
