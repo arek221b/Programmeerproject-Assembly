@@ -12,9 +12,9 @@ include KEYB.INC
 SCREENW		equ 320
 SCREENH		equ 200
 
-rlimit	equ 300	; right screen limit
-llimit	equ 10	; left screen limit
-ulimit	equ 10	; upper screen limit
+rlimit	equ 320	; right screen limit
+llimit	equ 0	; left screen limit
+ulimit	equ 0	; upper screen limit
 blimit	equ 200	; buttom screen limit
 
 
@@ -56,7 +56,7 @@ adressObject dw ?
 adressColour dw ?
 
 ;BRICKS
-BRICK	word 10, 5	;x/y
+BRICK	word 10, 5	; x, y
 		byte 10 dup(1)
 		byte 10 dup(1)
 		byte 10 dup(1)
@@ -65,7 +65,25 @@ BRICK	word 10, 5	;x/y
 		
 SIZEOFbrick	equ $-BRICK
 BRICKcolour	db SIZEOFbrick dup(0)
-posBRICK dw 100,70 ;x en y
+posBRICK	word 110, 70 ; x, y
+			word 125, 70 ; x, y
+			word 140, 70 ; x, y
+			word 155, 70 ; x, y
+			word 170, 70 ; x, y
+			word 185, 70 ; x, y
+			word 200, 70 ; x, y
+			word 215, 70 ; x, y
+			word 110, 60 ; x, y
+			word 125, 60 ; x, y
+			word 140, 60 ; x, y
+			word 155, 60 ; x, y
+			word 170, 60 ; x, y
+			word 185, 60 ; x, y
+			word 200, 60 ; x, y
+			word 215, 60 ; x, y
+			
+nbrBRICKS dw 16
+	
 
 ;BRICKS db x1,y1,	x2,y2, ...
 
@@ -147,7 +165,19 @@ start_over_decrement:
 	
 	call updateScreenBuffer
 	
-	call brickDetection
+	mov 	cx, [nbrBRICKS]
+	mov	bx, 0
+	detectBricksloop:
+		mov 	ax, [posBRICK][bx]
+		cmp	ax, 0
+		jz @F ; nextbrick
+		push 	bx ; om 1 brick te selecteren
+		call  brickDetection
+		@@:
+		dec 	cx
+		add	bx, 4
+		cmp 	cx, 0
+		jnz	detectBricksloop
 	
 	call paddleDetection
 	
@@ -180,14 +210,25 @@ updateScreenBuffer PROC NEAR
 	push 	ax
 	call 	drawObject
 
-	; draw brick
-	mov 	ax, offset BRICKcolour
-	push 	ax
-	mov 	ax, offset BRICK
-	push 	ax
-	mov 	ax, offset posBRICK
-	push 	ax
-	call 	drawObject
+	; draw bricks
+	mov 	cx, [nbrBRICKS]
+	mov	bx, 0
+	drawBricksloop:
+		mov 	ax, [posBRICK][bx]
+		cmp	ax, 0
+		jz @F ; nextbrick
+		mov 	ax, offset BRICKcolour
+		push 	ax
+		mov 	ax, offset BRICK
+		push 	ax
+		lea 	ax, [posBRICK][bx]
+		push 	ax
+		call 	drawObject
+		@@:
+		dec 	cx
+		add	bx, 4
+		cmp 	cx, 0
+		jnz	drawBricksloop
 
 	; draw bar
 	mov 	ax, offset BARcolour
@@ -619,7 +660,8 @@ brickDetection PROC NEAR
 	;------------------
 	;BOVENKANT checken
 	;------------------
-
+	
+	mov 	si, [bp + 4]
 
     ;|Vergelijken of de bal erboven zit |
     ;------------------------------------
@@ -629,13 +671,12 @@ brickDetection PROC NEAR
 	add ax, [speedBALL][2]     
 	
 	add ax, [BALL][2]         ; y breedte van de bal
-	mov dx, [posBRICK][2] 
+	mov dx, [posBRICK + si][2] 
 	
 	cmp ax, dx                ; je vergelijk de hoogte van de bovenkant van bal met de onderkant van de brick
 	jl brickDetection_done    ;jump to last want je weet dat de bal boven de blok zit
 	
 	
-   
     ;|Vergelijken of de bal binnen de breedte zit onder de hoogte|
     ;-------------------------------------------------------------
 	mov ax, [posBALL][0]      ; x positie updaten
@@ -646,7 +687,7 @@ brickDetection PROC NEAR
 	; eerste vergelijking ivm de positie van de brick en de bal : rechterlimiet
 	
 	
-	mov ax, [posBRICK][0]            
+	mov ax, [posBRICK + si][0]            
 	dec ax                  ; limiet van de botsingszone
 	add ax, [[BRICK][0]]       
 	cmp bx, ax
@@ -656,16 +697,12 @@ brickDetection PROC NEAR
 	;tweede vergelijking ivm  de positie van de brick en de bal : linkerlimiet
 	
 	
-	mov ax, [posBRICK][0]
+	mov ax, [posBRICK + si][0]
 	inc ax                  ; limiet van de botsingszone
 	sub ax, [BALL][0]       ; trek de breedte van de bal eraf 
 	cmp bx, ax              ; positie van de bal  moet kleiner zijn  dan de linkerlimiet
 	jl brickDetection_done ;als het kleiner is dan de linkerlimiet dan zit je goed
-	
-	
-
-
-
+	 
     ;-----------------
 	;ONDERKANT checken
 	;-----------------
@@ -680,7 +717,7 @@ brickDetection PROC NEAR
 	add ax, [speedBALL][2]     
 	
 	;add ax, [BALL][2]         ; y breedte van de bal
-	mov dx, [posBRICK][2] 
+	mov dx, [posBRICK + si][2] 
 	add dx, [[BRICK][2]]
 	cmp ax, dx                ; je vergelijk de hoogte van de bovenkant van bal met de onderkant van de brick
 	jg brickDetection_done    ;jump to last want je weet dat de bal onder de blok zit
@@ -700,7 +737,7 @@ brickDetection PROC NEAR
 	; eerste vergelijking ivm de positie van de brick en de bal : rechterlimiet
 	
 	
-	mov ax, [posBRICK][0]            
+	mov ax, [posBRICK + si][0]            
 	dec ax                  ; limiet van de botsingszone
 	add ax, [[BRICK][0]]       
 	cmp bx, ax
@@ -710,7 +747,7 @@ brickDetection PROC NEAR
 	;tweede vergelijking ivm  de positie van de brick en de bal : linkerlimiet
 	
 	
-	mov ax, [posBRICK][0]
+	mov ax, [posBRICK + si][0]
 	inc ax                  ; limiet van de botsingszone
 	sub ax, [BALL][0]       ; trek de breedte van de bal eraf 
 	cmp bx, ax              ; positie van de bal  moet kleiner zijn  dan de linkerlimiet
@@ -721,30 +758,26 @@ brickDetection PROC NEAR
 	;dit doen we door te kijken van waar dat de bal komt
 	
 	
-	mov ax, [posBall] [0]    ;voorafgaande positie ball
+	mov ax, [posBall][0]    ;voorafgaande positie ball
 	mov bx, ax
 	;in bx zit voorgaande positie ball
-	mov ax, [posBRICK] [0]
+	mov ax, [posBRICK + si][0]
 	cmp ax, bx 
 	jg bricksidecollision
-	
 	
 	add ax, [[BRICK][0]]
 	cmp ax, bx
 	jl bricksidecollision
 	
 brickbasiscollision:
-	mov ax, [speedBALL][2]   ;aanpassen van de speedvector
-	neg ax                   ;inverteren
-	mov [speedBALL][2], ax   ;opslagen in speedbal
-	jmp brickDetection_done
-
-
+	neg [speedBALL][2]   ; aanpassen van de speedvector
+	jmp deletebrick
+	
 bricksidecollision:
-    mov ax, [speedBALL][0]   ;aanpassen van de speedvector
-	neg ax                   ;inverteren
-	mov [speedBALL][0], ax   ;opslagen in speedbal
- 
+	neg [speedBALL][0]   ; aanpassen van de speedvector
+	
+deletebrick:
+	mov [posBRICK + si][0], 0 ; delete brick
 
 brickDetection_done:
 	; We are done
@@ -756,7 +789,7 @@ brickDetection_done:
 	pop	ax
 	; return
 	pop	bp
-	ret	0
+	ret	2
 
 brickDetection ENDP
 
