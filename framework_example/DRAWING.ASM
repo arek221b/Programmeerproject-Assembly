@@ -11,8 +11,6 @@ include KEYB.INC
 ; Other constants	
 SCREENW		equ 320
 SCREENH		equ 200
-BarWidthorg	equ 31
-BarHeight	equ 3
 
 rlimit	equ 300	; right screen limit
 llimit	equ 10	; left screen limit
@@ -25,8 +23,18 @@ blimit	equ 200	; buttom screen limit
 oldVideoMode	db ?
 
 ;BAR
+BAR	word 30 , 3
+		byte 30 dup(1)
+		byte 30 dup(1)
+		byte 30 dup(1)
+SIZEOFbar	equ $-BAR
+BARcolour	db SIZEOFbar dup(15)
+
+BARLONG	word 50 , 3
+			byte 50 dup(1)
+			byte 50 dup(1)	
+			byte 50 dup(1)
 posBAR 	dw 150, 170
-widthBAR dw ?
 speedBAR	equ 12
 
 ;BALL
@@ -37,7 +45,6 @@ BALL	word 6,6	;x/y
 		byte 1,1,1,1,1,1
 		byte 0,1,1,1,1,0
 		byte 0,0,1,1,0,0
-		
 SIZEOFball	equ $-BALL
 BALLcolour	db SIZEOFball dup(15)
 posBALL 		dw 2 dup(?) ;pos x en y
@@ -49,8 +56,12 @@ adressObject dw ?
 adressColour dw ?
 
 ;BRICKS
-brickwidth equ  70
-heightBrick   equ  10
+BRICK	word 10, 2	;x/y
+		byte 10 dup(1)
+		byte 10 dup(1)
+SIZEOFbrick	equ $-BRICK
+BRICKcolour	db SIZEOFbrick dup(15)
+
 ;BRICKS db x1,y1,	x2,y2, ...
 posBrick dw 100,70 ;x en y
 
@@ -131,13 +142,6 @@ start_over_decrement:
 
 @@: 
 	mov [aangepast], 0
-	;decrement the timer
-	dec 	[longBARtime]
-	mov 	ax, [longBARtime]
-	cmp 	ax, 0
-	jg @F   
-	mov [widthBAR], BarWidthorg ; set the orginal length of bar
-	@@:
 	cmp [LIFE], 0	
 	jnz @main_loop
 	
@@ -160,18 +164,22 @@ updateScreenBuffer PROC NEAR
 	call 	drawObject
 
 	;draw brick
-	mov 	ax, [brickwidth]
-	push	ax
-	mov 	ax, [heightBrick]
-	push	ax
-	call 	drawBrick
+	mov 	ax, offset BRICKcolour
+	push 	ax
+	mov 	ax, offset BRICK
+	push 	ax
+	mov 	ax, offset posBRICK
+	push 	ax
+	call 	drawObject
 
 	; draw bar
-	mov 	ax, [widthBAR]
-	push	ax
-	mov 	ax, BarHeight
-	push	ax
-	call 	drawBar
+	mov 	ax, offset BARcolour
+	push 	ax
+	mov 	ax, offset BAR
+	push 	ax
+	mov 	ax, offset posBAR
+	push 	ax
+	call 	drawObject
 
 	; draw the screen buffer
 	call 	updateScreen
@@ -190,7 +198,6 @@ setInit PROC NEAR
 
 	;initialiseren van start positie van de bal
 
-	mov 	[widthBAR], BarWidthorg
 	mov 	ax, [posBAR][0]
 	mov	[posBALL][0], ax
 	
@@ -315,7 +322,6 @@ handleInput PROC NEAR
 	push	ax
 	call 	movePaddle
 
-
 	@@:
 	; finally, let's put the ESC key status as return value in AX
 	mov	al, es:[__keyboardState][SCANCODE_ESC]	; test ESC
@@ -349,7 +355,7 @@ movePaddle PROC NEAR
 	sub 	ax, llimit
 	jmp movePaddle_compare
 	@@:
-	add	ax, [widthBAR]
+	add	ax, [BAR][0]
 	sub	ax, rlimit
 	neg 	ax
 	
@@ -514,7 +520,7 @@ paddleDetection PROC NEAR
 	
 	; rechterlimiet van de botsingszone
 	mov ax, [posBAR][0]       	
-	add ax, [widthBAR]
+	add ax, [BAR][0]
 	cmp bx, ax
 	jg paddleDetection_done   	; als het groter is dan de rechter dan buiten botsingszone
 	
@@ -600,7 +606,7 @@ brickDetection PROC NEAR
 	
 	mov ax, [posBrick][0]            
 	dec ax                  ; limiet van de botsingszone
-	add ax, [brickwidth]       
+	add ax, [[BRICK][0]]       
 	cmp bx, ax
 	jg brickDetection_done   ;als de je buiten de zone van de rechterlimiet  bent mag je verder spelen
 	
@@ -633,7 +639,7 @@ brickDetection PROC NEAR
 	
 	;add ax, [BALL][2]         ; y breedte van de bal
 	mov dx, [posBrick][2] 
-	add dx, [heightBrick]
+	add dx, [[BRICK][2]]
 	cmp ax, dx                ; je vergelijk de hoogte van de bovenkant van bal met de onderkant van de brick
 	jg brickDetection_done    ;jump to last want je weet dat de bal onder de blok zit
 	
@@ -654,7 +660,7 @@ brickDetection PROC NEAR
 	
 	mov ax, [posBrick][0]            
 	dec ax                  ; limiet van de botsingszone
-	add ax, [brickwidth]       
+	add ax, [[BRICK][0]]       
 	cmp bx, ax
 	jg brickDetection_done   ;als de je buiten de zone van de rechterlimiet  bent mag je verder spelen
 	
@@ -681,7 +687,7 @@ brickDetection PROC NEAR
 	jg bricksidecollision
 	
 	
-	add ax, [brickwidth]
+	add ax, [[BRICK][0]]
 	cmp ax, bx
 	jl bricksidecollision
 	
@@ -715,103 +721,6 @@ brickDetection ENDP
 ; --- DRAWING -------------------------------------
 ; Draw a rectangle at the center of the screen buffer.
 ; W, H passed on stack.
-
-
-;tekenen van de brick
-
-drawBrick PROC NEAR
-	push	bp
-	mov	bp, sp
-	
-	push	ax
-	push	bx
-	push	cx
-	push	dx
-	push	di
-	push	es
-	
-	; set segment
-	mov	ax, seg screenBuffer
-	mov	es, ax
-	
-	mov	ax, SCREENW
-	mov 	dx, [posBrick][2]
-	mul	dx    
-	add   ax, [posBrick][0]
-	add	ax, offset screenBuffer
-	
-	mov	cx, [bp + 4][0]	; rect Height
-	mov	di, ax
-	
-drawloop:
-	push cx	
-	mov	cx, [bp + 4][2]	; rect Width
-	mov	al, 15	; color
-	cld
-	rep	stosb	; draw	
-	sub	di, [bp + 4][2]
-	add	di, SCREENW	; jump to next pixel (on next line)
-	pop 	cx
-	loop	drawloop
-
-	; We are done
-	pop	es
-	pop	di
-	pop	dx
-	pop	cx
-	pop	bx
-	pop	ax
-	; return
-	pop	bp
-	ret	4
-drawBrick ENDP
-
-drawBar PROC NEAR
-	push	bp
-	mov	bp, sp
-	
-	push	ax
-	push	bx
-	push	cx
-	push	dx
-	push	di
-	push	es
-	
-	; set segment
-	mov	ax, seg screenBuffer
-	mov	es, ax
-	
-	mov	ax, SCREENW
-	mov 	dx, [posBAR][2]
-	mul	dx    
-	add   ax, [posBAR][0]
-	add	ax, offset screenBuffer
-	
-	mov	cx, [bp + 4][0]	; rect Height
-	mov	di, ax
-	
-drawloop:
-	push cx	
-	mov	cx, [bp + 4][2]	; rect Width
-	mov	al, 15	; color
-	cld
-	rep	stosb	; draw	
-	sub	di, [bp + 4][2]
-	add	di, SCREENW	; jump to next pixel (on next line)
-	pop 	cx
-	loop	drawloop
-
-	; We are done
-	pop	es
-	pop	di
-	pop	dx
-	pop	cx
-	pop	bx
-	pop	ax
-	; return
-	pop	bp
-	ret	4
-drawBar ENDP
   
 drawObject Proc NEAR
 
