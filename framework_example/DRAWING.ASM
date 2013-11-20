@@ -54,6 +54,7 @@ posBrick dw 100,70 ;x en y
 ;BRICKScolour db colours
 
 LIFE dw 3
+MAXLIFE dw 3
 
 ;SPECIAL
 effectTimer EQU 100
@@ -90,43 +91,55 @@ main PROC NEAR
 	; set initial ball conditions
 	call setInit
 	
-	; draw intitial conditions
+start_over:
+    call updateScreenBuffer 
+	
+	;wait for spacebar to begin
+    mov	ax, seg __keysActive
+    mov	es, ax
+   
+@@:
+	mov	al, es:[__keyboardState][SCANCODE_SPACEBAR]
+	cmp	al, 0
+	je		@B
+	jmp @main_loop
+
+start_over_decrement: 
+  dec [MAXLIFE]
+  jmp start_over
+	
+; --- DRAWLOOP ---------------------------------------
+@main_loop:
+	
+	mov ax, [LIFE]
+	cmp ax, [MAXLIFE]
+	jne start_over_decrement
+	
 	call updateScreenBuffer
 	
-	; wait for spacebar to begin
-	mov	ax, seg __keysActive
-	mov	es, ax
+	call brickDetection
+	
+	call paddleDetection
+	
+	call wallDetection
+	
+	cmp [aangepast], 1
+	je @F
+	call updateBall
+
+@@: 
+	mov [aangepast], 0
+	;decrement the timer
+	dec 	[longBARtime]
+	mov 	ax, [longBARtime]
+	cmp 	ax, 0
+	jg @F   
+	mov [widthBAR], BarWidthorg ; set the orginal length of bar
 	@@:
-		mov	al, es:[__keyboardState][SCANCODE_SPACEBAR]
-		cmp	al, 0
-		je		@B
-	
-	; begin the drawloop
-	@main_drawloop:
-
-		cmp 	[LIFE], 0
-		je @main_drawdone
-		
-		call updateScreenBuffer
-	
-		call brickDetection
-	
-		call paddleDetection
-	
-		call wallDetection
-		
-		call handleInput
-		
-		; update possition ball
-		cmp [aangepast], 1
-		je @F
-		call updateBall
-		@@: 
-		mov [aangepast], 0
-
-		jmp @main_drawloop
-		
+	cmp [LIFE], 0	
+	jnz @main_loop
 	; end program when LIFE = 0
+	
 	@main_drawdone:
 	call endProgram
 main ENDP
