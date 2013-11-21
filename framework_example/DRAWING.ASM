@@ -171,6 +171,7 @@ start_over_decrement:
 		mov 	ax, [posBRICK][bx]
 		cmp	ax, 0
 		jz @F ; nextbrick
+		
 		push 	bx ; om 1 brick te selecteren
 		call  brickDetection
 		@@:
@@ -286,6 +287,37 @@ setInit ENDP
 
 ; --- FUNCTIONS -----------------------------------
 ; Fades the active colors to black
+
+calc_square PROC NEAR
+
+	push	bp	
+	mov	bp, sp
+
+	push	bx
+	push	cx
+	push	dx
+	push	di
+	push	es
+
+mov dx, ax
+mul dx
+
+
+	; We are done
+	pop	es
+	pop	di
+	pop	dx
+	pop	cx
+	pop	bx
+	; return
+	pop	bp
+	ret	0
+
+calc_square ENDP
+
+
+
+
 fadeToBlack PROC NEAR
 	push	ax
 
