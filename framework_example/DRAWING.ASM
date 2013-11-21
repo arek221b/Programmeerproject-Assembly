@@ -141,7 +141,10 @@ main PROC NEAR
 	mov		[oldVideoMode], al
 	
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
+=======
+>>>>>>> 1198ef34052262d61d2775e52ef32acf1b8ed145
 start_over:
 	; set initial ball conditions
 >>>>>>> 1198ef34052262d61d2775e52ef32acf1b8ed145
@@ -149,12 +152,16 @@ start_over:
    call updateScreenBuffer 
 	
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 	
 
 start_over:
     call updateScreenBuffer 
 			;wait for spacebar to begin
+=======
+	;wait for spacebar to begin
+>>>>>>> 1198ef34052262d61d2775e52ef32acf1b8ed145
 =======
 	;wait for spacebar to begin
 >>>>>>> 1198ef34052262d61d2775e52ef32acf1b8ed145
@@ -205,6 +212,7 @@ start_over_decrement:
 @@: 
 	mov [aangepast], 0
 <<<<<<< HEAD
+<<<<<<< HEAD
 	;decrement the timer
 	dec 	[longBARtime]
 	mov 	ax, [longBARtime]
@@ -222,6 +230,10 @@ start_over_decrement:
 =======
 	cmp [LIFE], 0	
 	jnz @main_loop
+=======
+	cmp [LIFE], 0	
+	jnz @main_loop
+>>>>>>> 1198ef34052262d61d2775e52ef32acf1b8ed145
 	
 	; end program when LIFE = 0
 	@main_drawdone:
@@ -443,8 +455,11 @@ handleInput PROC NEAR
 	sub [posBAR], ax
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 @@:
 =======
+=======
+>>>>>>> 1198ef34052262d61d2775e52ef32acf1b8ed145
 	@@:
 >>>>>>> 1198ef34052262d61d2775e52ef32acf1b8ed145
 	; finally, let's put the ESC key status as return value in AX
