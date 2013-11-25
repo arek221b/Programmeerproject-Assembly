@@ -56,7 +56,12 @@ adressObject dw ?
 adressColour dw ?
 
 ;BRICKS
-BRICK	word 10, 5	; x, y
+BRICK	word 10, 10	; x, y
+		byte 10 dup(1)
+		byte 10 dup(1)
+		byte 10 dup(1)
+		byte 10 dup(1)
+		byte 10 dup(1)
 		byte 10 dup(1)
 		byte 10 dup(1)
 		byte 10 dup(1)
@@ -81,8 +86,24 @@ posBRICK	word 110, 70 ; x, y
 			word 185, 60 ; x, y
 			word 200, 60 ; x, y
 			word 215, 60 ; x, y
+			word 110, 75 ; x, y
+			word 125, 75 ; x, y
+			word 140, 75 ; x, y
+			word 155, 75 ; x, y
+			word 170, 75 ; x, y
+			word 185, 75 ; x, y
+			word 200, 75 ; x, y
+			word 215, 75 ; x, y
+			word 110, 45 ; x, y
+			word 125, 45 ; x, y
+			word 140, 45 ; x, y
+			word 155, 45 ; x, y
+			word 170, 45 ; x, y
+			word 185, 45 ; x, y
+			word 200, 45 ; x, y
+			word 215, 45 ; x, y
 			
-nbrBRICKS dw 16
+nbrBRICKS dw 32
 	
 
 ;BRICKS db x1,y1,	x2,y2, ...
@@ -169,9 +190,32 @@ start_over_decrement:
 	mov	bx, 0
 	detectBricksloop:
 		mov 	ax, [posBRICK][bx]
-		cmp	ax, 0
+		cmp	ax, 20
 		jz @F ; nextbrick
+		mov ax, [posBALL][0]
+		neg ax
+		add ax, [posBRICK][bx]
+		cmp ax, 0
+		jge positive
+		neg ax
 		
+	positive:
+        cmp ax, 20
+        jg @F
+        
+        
+        ;voor y coordinaat
+         
+		mov ax, [posBALL][2]
+		neg ax
+		add ax, [posBRICK][bx]
+		cmp ax, 0
+		jge positive2
+		neg ax
+		
+	positive2:
+        cmp ax, 5
+        jl @F
 		push 	bx ; om 1 brick te selecteren
 		call  brickDetection
 		@@:
@@ -288,32 +332,6 @@ setInit ENDP
 ; --- FUNCTIONS -----------------------------------
 ; Fades the active colors to black
 
-calc_square PROC NEAR
-
-	push	bp	
-	mov	bp, sp
-
-	push	bx
-	push	cx
-	push	dx
-	push	di
-	push	es
-
-mov dx, ax
-mul dx
-
-
-	; We are done
-	pop	es
-	pop	di
-	pop	dx
-	pop	cx
-	pop	bx
-	; return
-	pop	bp
-	ret	0
-
-calc_square ENDP
 
 
 
