@@ -50,60 +50,103 @@ BALLcolour	db SIZEOFball dup(0)
 posBALL 		dw 2 dup(?) ;pos x en y
 speedBALL 	dw 2 dup(?)
 speedBALLinit	dw 5, -5 
+newspeedBaLL 	db -7, -7, -6, -6, -6, -5, -5, -4, -4, -4, -3, -3, -3, -2, -2, -1, -1, -0
+					db 0, 1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 6, 7, 7
 aangepast dw 0
 
 adressObject dw ?
 adressColour dw ?
 
 ;BRICKS
-BRICK	word 10, 10	; x, y
-		byte 10 dup(1)
-		byte 10 dup(1)
-		byte 10 dup(1)
-		byte 10 dup(1)
-		byte 10 dup(1)
-		byte 10 dup(1)
-		byte 10 dup(1)
-		byte 10 dup(1)
-		byte 10 dup(1)
-		byte 10 dup(1)
+BRICK	word 15, 8	; x, y
 		
 SIZEOFbrick	equ $-BRICK
-BRICKcolour	db SIZEOFbrick dup(0)
-posBRICK	word 110, 70 ; x, y
-			word 125, 70 ; x, y
-			word 140, 70 ; x, y
-			word 155, 70 ; x, y
-			word 170, 70 ; x, y
-			word 185, 70 ; x, y
-			word 200, 70 ; x, y
-			word 215, 70 ; x, y
-			word 110, 60 ; x, y
-			word 125, 60 ; x, y
-			word 140, 60 ; x, y
-			word 155, 60 ; x, y
-			word 170, 60 ; x, y
-			word 185, 60 ; x, y
-			word 200, 60 ; x, y
-			word 215, 60 ; x, y
-			word 110, 75 ; x, y
-			word 125, 75 ; x, y
-			word 140, 75 ; x, y
-			word 155, 75 ; x, y
-			word 170, 75 ; x, y
-			word 185, 75 ; x, y
-			word 200, 75 ; x, y
-			word 215, 75 ; x, y
-			word 110, 45 ; x, y
-			word 125, 45 ; x, y
-			word 140, 45 ; x, y
-			word 155, 45 ; x, y
-			word 170, 45 ; x, y
-			word 185, 45 ; x, y
-			word 200, 45 ; x, y
-			word 215, 45 ; x, y
-			
-nbrBRICKS dw 32
+colourBRICK	byte 60 dup(12)
+				byte 60 dup(8)
+				byte 60 dup(2)
+				byte 60 dup(10)
+				
+posBRICK word 60, 20 ; x, y
+			word 60, 30 ; x, y
+			word 60, 40 ; x, y
+			word 60, 50 ; x, y
+			word 60, 60 ; x, y
+			word 77, 20 ; x, y
+			word 77, 30 ; x, y
+			word 77, 40 ; x, y
+			word 77, 50 ; x, y
+			word 77, 60 ; x, y
+			word 94, 20 ; x, y
+			word 94, 30 ; x, y
+			word 94, 40 ; x, y
+			word 94, 50 ; x, y
+			word 94, 60 ; x, y
+			word 111, 20 ; x, y
+			word 111, 30 ; x, y
+			word 111, 40 ; x, y
+			word 111, 50 ; x, y
+			word 111, 60 ; x, y
+			word 128, 20 ; x, y
+			word 128, 30 ; x, y
+			word 128, 40 ; x, y
+			word 128, 50 ; x, y
+			word 128, 60 ; x, y
+			word 145, 20 ; x, y
+			word 145, 30 ; x, y
+			word 145, 40 ; x, y
+			word 145, 50 ; x, y
+			word 145, 60 ; x, y
+			word 162, 20 ; x, y
+			word 162, 30 ; x, y
+			word 162, 40 ; x, y
+			word 162, 50 ; x, y
+			word 162, 60 ; x, y
+			word 179, 20 ; x, y
+			word 179, 30 ; x, y
+			word 179, 40 ; x, y
+			word 179, 50 ; x, y
+			word 179, 60 ; x, y
+			word 196, 20 ; x, y
+			word 196, 30 ; x, y
+			word 196, 40 ; x, y
+			word 196, 50 ; x, y
+			word 196, 60 ; x, y
+			word 213, 20 ; x, y
+			word 213, 30 ; x, y
+			word 213, 40 ; x, y
+			word 213, 50 ; x, y
+			word 213, 60 ; x, y
+			word 230, 20 ; x, y
+			word 230, 30 ; x, y
+			word 230, 40 ; x, y
+			word 230, 50 ; x, y
+			word 230, 60 ; x, y
+			word 247, 20 ; x, y
+			word 247, 30 ; x, y
+			word 247, 40 ; x, y
+			word 247, 50 ; x, y
+			word 247, 60 ; x, y
+			word 264, 20 ; x, y
+			word 264, 30 ; x, y
+			word 264, 40 ; x, y
+			word 264, 50 ; x, y
+			word 264, 60 ; x, y
+			word 281, 20 ; x, y
+			word 281, 30 ; x, y
+			word 281, 40 ; x, y
+			word 281, 50 ; x, y
+			word 281, 60 ; x, y
+			word 298, 20 ; x, y
+			word 298, 30 ; x, y
+			word 298, 40 ; x, y
+			word 298, 50 ; x, y
+			word 298, 60 ; x, y
+			word 315, 20 ; x, y
+			word 315, 30 ; x, y
+			word 315, 40 ; x, y
+			word 315, 50 ; x, y
+			word 315, 60 ; x, y
+nbrBRICKS dw 60
 	
 
 ;BRICKS db x1,y1,	x2,y2, ...
@@ -190,32 +233,9 @@ start_over_decrement:
 	mov	bx, 0
 	detectBricksloop:
 		mov 	ax, [posBRICK][bx]
-		cmp	ax, 20
+		cmp	ax, 0
 		jz @F ; nextbrick
-		mov ax, [posBALL][0]
-		neg ax
-		add ax, [posBRICK][bx]
-		cmp ax, 0
-		jge positive
-		neg ax
-		
-	positive:
-        cmp ax, 20
-        jg @F
-        
-        
-        ;voor y coordinaat
-         
-		mov ax, [posBALL][2]
-		neg ax
-		add ax, [posBRICK][bx]
-		cmp ax, 0
-		jge positive2
-		neg ax
-		
-	positive2:
-        cmp ax, 5
-        jl @F
+
 		push 	bx ; om 1 brick te selecteren
 		call  brickDetection
 		@@:
@@ -262,13 +282,12 @@ updateScreenBuffer PROC NEAR
 		mov 	ax, [posBRICK][bx]
 		cmp	ax, 0
 		jz @F ; nextbrick
-		mov 	ax, offset BRICKcolour
-		push 	ax
-		mov 	ax, offset BRICK
+		mov	ah, 0
+		mov	al, [colourBRICK][bx]
 		push 	ax
 		lea 	ax, [posBRICK][bx]
 		push 	ax
-		call 	drawObject
+		call 	drawBrick
 		@@:
 		dec 	cx
 		add	bx, 4
@@ -333,8 +352,42 @@ setInit ENDP
 ; Fades the active colors to black
 
 
-
-
+calcSquareroot PROC NEAR
+; calculate the square root of ax 
+; Nexton formule f(x) = x^2 - S = 0 --> xn+1 = xn - f(xn)/f'(xn) = 1/2(xn + S/xn)
+; convergence if startvalue is close to root, take here ax
+	push 	bp
+	mov	bp, sp 
+	push	cx
+	push	dx
+	push	si
+	push	di
+	push	ds
+	push	es
+	
+	mov	si, [bp + 4]	; save S
+	calcSquarerootloop:
+		mov	bx, ax	; set next value
+		mov	ax, si
+		mov	cx , bx	
+		cwd		; sign extend to DX:AX (32-bit)
+		idiv	cx	; divide DX:AX by cx
+					; result in AX, remainder in DX
+		add	ax, bx
+		sar	ax, 1 ; divide ax by 2
+		cmp	bx, ax ; check convergence
+		jne	calcSquarerootloop
+	
+	pop	es
+	pop	ds
+	pop	di
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bp
+	ret	2
+	
+calcSquareroot ENDP
 
 fadeToBlack PROC NEAR
 	push	ax
@@ -668,17 +721,26 @@ paddleDetection PROC NEAR
 	mov [posBall][0], bx
 	mov [aangepast], 1
 	
-	; update speedvector
-	mov 	ax, [BAR][0] ; berekening midden van de balk + ball (limiet grootte)
+	; update speedvector (bereken offset tov linkerlimiet)
+	mov 	ax, bx 
+	sub	ax, [posBAR][0] ; berekening midden van de balk + ball (limiet grootte)
 	add	ax, [BALL][0]
-	sar	ax, 1
-	add	ax, [posBAR][0]
-	sub	ax, [BALL][0] ; bereken offset van de ball tot het midden van de limiet
-	neg	ax
-	add	ax, bx
-	sar	ax, 1
+	mov	bx, ax
+	mov	al, [newspeedBALL][bx]
+	cbw
 	mov	[speedBALL][0], ax
-	neg 	[speedBALL][2]
+	; totale snelheid moet behouden blijven
+	cmp 	ax, 0	
+	jge positive
+	neg ax
+	positive:
+	mul	ax
+	neg 	ax
+	add	ax, 50 ; constante snelheid van 50 = 5^2 + 5^2
+	push 	ax
+	call 	calcSquareroot ; calculate square root of ax
+	neg	ax
+	neg	[speedBALL][2]
 
 	paddleDetection_done:
 	; We are done
@@ -846,7 +908,54 @@ brickDetection ENDP
 ; --- DRAWING -------------------------------------
 ; Draw a rectangle at the center of the screen buffer.
 ; W, H passed on stack.
-  
+drawBrick PROC NEAR
+	push	bp
+	mov	bp, sp
+	
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	di
+	push	es
+	
+	; set segment
+	mov	ax, seg screenBuffer
+	mov	es, ax
+	
+	mov 	bx, [bp + 4] ; adress of position
+	
+	mov	ax, SCREENW
+	mov 	dx, [bx][2]
+	mul	dx    
+	add   ax, [bx][0]
+	add	ax, offset screenBuffer
+	mov	di, ax
+	mov	cx, [BRICK][2]
+	 drawloop:
+	 	push cx  
+	 	mov  cx, [BRICK][0]  ; rect Width
+	 	mov  al, [bp + 6]  ; color
+	 	cld
+	 	rep  stosb  ; draw  
+	 	sub  di, [BRICK][0]
+	 	add  di, SCREENW  ; jump to next pixel (on next line)
+	 	pop   cx
+	 	loop  drawloop
+
+	draw_done:	
+	; We are done
+	pop	es
+	pop	di
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	; return
+	pop	bp
+	ret	4
+drawBrick  ENDP
+ 
 drawObject Proc NEAR
 
 	push	bp
