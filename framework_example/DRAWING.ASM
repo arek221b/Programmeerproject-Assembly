@@ -12,9 +12,9 @@ include KEYB.INC
 SCREENW		equ 320
 SCREENH		equ 200
 
-rlimit	equ 320	; right screen limit
-llimit	equ 0	; left screen limit
-ulimit	equ 0	; upper screen limit
+rlimit	equ SCREENW-8	; right screen limit
+llimit	equ 0+8	; left screen limit
+ulimit	equ 35	; upper screen limit
 blimit	equ 200	; buttom screen limit
 
 
@@ -22,13 +22,18 @@ blimit	equ 200	; buttom screen limit
 .DATA        ; data segment, variables
 oldVideoMode	db ?
 
+;MENU
+msgMenu1 db "Press P to play$"
+msgMenu2 db "Press Q to quit$"
+msgMenu3 db "Press spacebar to begin$"  
+
 ;BAR
 BAR	word 30 , 3
 		byte 30 dup(1)
 		byte 30 dup(1)
 		byte 30 dup(1)
 SIZEOFbar	equ $-BAR
-BARcolour	db SIZEOFbar dup(0)
+BARcolour	db SIZEOFbar dup(15)
 
 BARLONG	word 50 , 3
 			byte 50 dup(1)
@@ -46,7 +51,7 @@ BALL	word 6,6	;x/y
 		byte 0,1,1,1,1,0
 		byte 0,0,1,1,0,0
 SIZEOFball	equ $-BALL
-BALLcolour	db SIZEOFball dup(0)
+BALLcolour	db SIZEOFball dup(15)
 posBALL 		dw 2 dup(?) ;pos x en y
 speedBALL 	dw 2 dup(?)
 speedBALLinit	dw 5, -5 
@@ -60,96 +65,226 @@ adressColour dw ?
 ;BRICKS
 BRICK	word 15, 8	; x, y
 		
-SIZEOFbrick	equ $-BRICK
-colourBRICK	byte 60 dup(12)
-				byte 60 dup(8)
-				byte 60 dup(2)
-				byte 60 dup(10)
-				
-posBRICK word 60, 20 ; x, y
-			word 60, 30 ; x, y
-			word 60, 40 ; x, y
-			word 60, 50 ; x, y
-			word 60, 60 ; x, y
-			word 77, 20 ; x, y
-			word 77, 30 ; x, y
-			word 77, 40 ; x, y
-			word 77, 50 ; x, y
-			word 77, 60 ; x, y
-			word 94, 20 ; x, y
-			word 94, 30 ; x, y
-			word 94, 40 ; x, y
-			word 94, 50 ; x, y
-			word 94, 60 ; x, y
-			word 111, 20 ; x, y
-			word 111, 30 ; x, y
-			word 111, 40 ; x, y
-			word 111, 50 ; x, y
-			word 111, 60 ; x, y
-			word 128, 20 ; x, y
-			word 128, 30 ; x, y
-			word 128, 40 ; x, y
-			word 128, 50 ; x, y
-			word 128, 60 ; x, y
-			word 145, 20 ; x, y
-			word 145, 30 ; x, y
-			word 145, 40 ; x, y
-			word 145, 50 ; x, y
-			word 145, 60 ; x, y
-			word 162, 20 ; x, y
-			word 162, 30 ; x, y
-			word 162, 40 ; x, y
-			word 162, 50 ; x, y
-			word 162, 60 ; x, y
-			word 179, 20 ; x, y
-			word 179, 30 ; x, y
-			word 179, 40 ; x, y
-			word 179, 50 ; x, y
-			word 179, 60 ; x, y
-			word 196, 20 ; x, y
-			word 196, 30 ; x, y
-			word 196, 40 ; x, y
-			word 196, 50 ; x, y
-			word 196, 60 ; x, y
-			word 213, 20 ; x, y
-			word 213, 30 ; x, y
-			word 213, 40 ; x, y
-			word 213, 50 ; x, y
-			word 213, 60 ; x, y
-			word 230, 20 ; x, y
-			word 230, 30 ; x, y
-			word 230, 40 ; x, y
-			word 230, 50 ; x, y
-			word 230, 60 ; x, y
-			word 247, 20 ; x, y
-			word 247, 30 ; x, y
-			word 247, 40 ; x, y
-			word 247, 50 ; x, y
-			word 247, 60 ; x, y
-			word 264, 20 ; x, y
-			word 264, 30 ; x, y
-			word 264, 40 ; x, y
-			word 264, 50 ; x, y
-			word 264, 60 ; x, y
-			word 281, 20 ; x, y
-			word 281, 30 ; x, y
-			word 281, 40 ; x, y
-			word 281, 50 ; x, y
-			word 281, 60 ; x, y
-			word 298, 20 ; x, y
-			word 298, 30 ; x, y
-			word 298, 40 ; x, y
-			word 298, 50 ; x, y
-			word 298, 60 ; x, y
-			word 315, 20 ; x, y
-			word 315, 30 ; x, y
-			word 315, 40 ; x, y
-			word 315, 50 ; x, y
-			word 315, 60 ; x, y
-nbrBRICKS dw 60
+posBRICK	word  llimit+10+0, ulimit+10+0 ; x, y
+			word  llimit+10+17, ulimit+10+0 ; x, y
+			word  llimit+10+34, ulimit+10+0 ; x, y
+			word  llimit+10+51, ulimit+10+0 ; x, y
+			word  llimit+10+68, ulimit+10+0 ; x, y
+			word  llimit+10+85, ulimit+10+0 ; x, y
+			word  llimit+10+102, ulimit+10+0 ; x, y
+			word  llimit+10+119, ulimit+10+0 ; x, y
+			word  llimit+10+136, ulimit+10+0 ; x, y
+			word  llimit+10+153, ulimit+10+0 ; x, y
+			word  llimit+10+170, ulimit+10+0 ; x, y
+			word  llimit+10+187, ulimit+10+0 ; x, y
+			word  llimit+10+204, ulimit+10+0 ; x, y
+			word  llimit+10+221, ulimit+10+0 ; x, y
+			word  llimit+10+238, ulimit+10+0 ; x, y
+			word  llimit+10+255, ulimit+10+0 ; x, y
+			word  llimit+10+272, ulimit+10+0 ; x, y
+			word  llimit+10+0, ulimit+10+10 ; x, y
+			word  llimit+10+17, ulimit+10+10 ; x, y
+			word  llimit+10+34, ulimit+10+10 ; x, y
+			word  llimit+10+51, ulimit+10+10 ; x, y
+			word  llimit+10+68, ulimit+10+10 ; x, y
+			word  llimit+10+85, ulimit+10+10 ; x, y
+			word  llimit+10+102, ulimit+10+10 ; x, y
+			word  llimit+10+119, ulimit+10+10 ; x, y
+			word  llimit+10+136, ulimit+10+10 ; x, y
+			word  llimit+10+153, ulimit+10+10 ; x, y
+			word  llimit+10+170, ulimit+10+10 ; x, y
+			word  llimit+10+187, ulimit+10+10 ; x, y
+			word  llimit+10+204, ulimit+10+10 ; x, y
+			word  llimit+10+221, ulimit+10+10 ; x, y
+			word  llimit+10+238, ulimit+10+10 ; x, y
+			word  llimit+10+255, ulimit+10+10 ; x, y
+			word  llimit+10+272, ulimit+10+10 ; x, y
+			word  llimit+10+0, ulimit+10+20 ; x, y
+			word  llimit+10+17, ulimit+10+20 ; x, y
+			word  llimit+10+34, ulimit+10+20 ; x, y
+			word  llimit+10+51, ulimit+10+20 ; x, y
+			word  llimit+10+68, ulimit+10+20 ; x, y
+			word  llimit+10+85, ulimit+10+20 ; x, y
+			word  llimit+10+102, ulimit+10+20 ; x, y
+			word  llimit+10+119, ulimit+10+20 ; x, y
+			word  llimit+10+136, ulimit+10+20 ; x, y
+			word  llimit+10+153, ulimit+10+20 ; x, y
+			word  llimit+10+170, ulimit+10+20 ; x, y
+			word  llimit+10+187, ulimit+10+20 ; x, y
+			word  llimit+10+204, ulimit+10+20 ; x, y
+			word  llimit+10+221, ulimit+10+20 ; x, y
+			word  llimit+10+238, ulimit+10+20 ; x, y
+			word  llimit+10+255, ulimit+10+20 ; x, y
+			word  llimit+10+272, ulimit+10+20 ; x, y
+ 
+nbrBRICKS dw 51
+ 
+colourBRICK	byte 68 dup(12)
+				byte 68 dup(2)
+				byte 68 dup(5)
 	
+; BACKGROUND
 
-;BRICKS db x1,y1,	x2,y2, ...
+backgrColor equ 0
+SCORE		dw	0
+msgScore db "Score: $"
+TUBE1		word 8, 27
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			byte 0, 6 dup(1), 0
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 8 dup(1)
+			byte 0, 6 dup(1), 0
+			byte 2 dup(0), 4 dup(6), 2 dup(0)
+
+TUBE1colour	byte 4 dup(0);maakt niet uit
+				byte 8 dup(0)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(0)
+				byte 8 dup(7)
+				byte 8 dup(0)
+				byte 8 dup(7)
+				byte 8 dup(0)
+				byte 8 dup(7)
+				byte 8 dup(0)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(7)
+				byte 8 dup(0)
+
+posTUBE1	word llimit-8, ulimit+15
+			word llimit-8, ulimit+55
+			word llimit-8, ulimit+95
+			word llimit-8, ulimit+135
+			word rlimit, ulimit+15
+			word rlimit, ulimit+55
+			word rlimit, ulimit+95
+			word rlimit, ulimit+135
+			
+nbrTUBES1	dw 8
+			
+TUBE2		word 27, 8
+			byte 3 dup(0), 21 dup(1), 3 dup(0)
+			byte 1 dup(0), 25 dup(1), 1 dup(0)
+			byte 27 dup(1)
+			byte 27 dup(1)
+			byte 27 dup(1)
+			byte 27 dup(1)
+			byte 1 dup(0), 25 dup(1), 1 dup(0)
+			byte 3 dup(0), 21 dup(1), 3 dup(0)
+
+posTUBE2	word llimit+20, ulimit-8
+			word llimit+60, ulimit-8
+			word llimit+100, ulimit-8
+			word llimit+140, ulimit-8
+			word llimit+180, ulimit-8
+			word llimit+220, ulimit-8
+			word llimit+260, ulimit-8
+			
+nbrTUBES2	dw 7
+
+TUBE2colour	byte 4 dup(0);maakt niet uit
+				byte 10 dup(7), 0, 7, 0, 7, 0, 7, 0, 10 dup(7)
+				byte 10 dup(7), 0, 7, 0, 7, 0, 7, 0, 10 dup(7)
+				byte 0, 9 dup(7), 0, 7, 0, 7, 0, 7, 0, 9 dup(7), 0
+				byte 0, 9 dup(7), 0, 7, 0, 7, 0, 7, 0, 9 dup(7), 0
+				byte 0, 9 dup(7), 0, 7, 0, 7, 0, 7, 0, 9 dup(7), 0
+				byte 0, 9 dup(7), 0, 7, 0, 7, 0, 7, 0, 9 dup(7), 0
+				byte 10 dup(7), 0, 7, 0, 7, 0, 7, 0, 10 dup(7)
+				byte 10 dup(7), 0, 7, 0, 7, 0, 7, 0, 10 dup(7)
+			
+PIPE1		word 8, 13
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			byte 2 dup(0), 4 dup(1), 2 dup(0)
+			
+
+posPIPE1	word llimit-8, ulimit+15-13-13
+			word llimit-8, ulimit+15-13
+			word llimit-8, ulimit+55-13
+			word llimit-8, ulimit+95-13
+			word llimit-8, ulimit+135-13
+			word rlimit, ulimit+15-13-13
+			word rlimit, ulimit+15-13
+			word rlimit, ulimit+55-13
+			word rlimit, ulimit+95-13
+			word rlimit, ulimit+135-13
+			
+nbrPIPES1	dw 10
+
+SIZEOFPIPE1	equ $-PIPE1
+PIPE1colour	db SIZEOFPIPE1 dup(7)
+
+PIPE2		word 13, 8
+			byte 13 dup(0)
+			byte 13 dup(0)
+			byte 13 dup(1)
+			byte 13 dup(1)
+			byte 13 dup(1)
+			byte 13 dup(1)
+			byte 13 dup(0)
+			byte 13 dup(0)
+
+posPIPE2	word llimit+20-13-13, ulimit-8
+			word llimit+20-13, ulimit-8
+			word llimit+60-13, ulimit-8
+			word llimit+100-13, ulimit-8
+			word llimit+140-13, ulimit-8
+			word llimit+180-13, ulimit-8
+			word llimit+220-13, ulimit-8
+			word llimit+260-13, ulimit-8
+			word llimit+300-13, ulimit-8
+			word llimit+300-5, ulimit-8
+			
+nbrPIPES2	dw 10
+
+SIZEOFPIPE2	equ $-PIPE2
+PIPE2colour	db SIZEOFPIPE2 dup(7)
+			
 
 ; HART
 HART	word 8, 7
@@ -162,7 +297,9 @@ HART	word 8, 7
 		byte 0,0,0,1,1,0,0,0
 SIZEOFhart	equ $-HART
 HARTcolour	db SIZEOFhart dup(4)
-posHART dw 10, 10, 20, 10, 30, 10
+posHART 	word llimit+10, 180
+			word llimit+20, 180 
+			word llimit+30, 180
 
 ;BRICKScolour db colours
 
@@ -176,7 +313,7 @@ longBARtime dw 0 ;timer for long bar
 ; --- SCREEN BUFFER ------------------------------------------------------------
 .FARDATA?	; segment that contains the screenBuffer for mode 13h drawing
 palette			db 768 dup(0)
-screenBuffer	db 64000 dup(?)	; the 64000 bytes for the screen
+screenBuffer	db 64000 dup(backgrColor)	; the 64000 bytes for the screen
 
 ; --- CODE SEGMENT -------------------------------------------------------------
 .CODE        ; code segment
@@ -192,25 +329,68 @@ main PROC NEAR
 	; fade to black
 	call	fadeToBlack
 	
-	; clear videoset buffer
-	call	clearScreenBuffer
-	
 	; set mode 13h
 	mov	ax, 13h
 	push	ax
 	call	setVideoMode
 	mov		[oldVideoMode], al
 	
+	
+	mov ah, 02h
+	mov	dh, 8
+	mov	dl, 10 ; 0 --> 39 elementen
+	int 10h
+	mov	ah, 09h		; select function 09h
+	mov	dx, offset msgMenu1	; load offset address of msg (in data segment)
+	int	21h
+	mov ah, 02h
+	mov	dh, 10
+	mov	dl, 10 ; 0 --> 39 elementen
+	int 10h
+	mov	ah, 09h		; select function 09h
+	mov	dx, offset msgMenu2	; load offset address of msg (in data segment)
+	int	21h
+	
+	;wait for p to begin
+    mov	ax, seg __keysActive
+    mov	es, ax
+	@@:
+		mov	al, es:[__keyboardState][SCANCODE_Q]
+		cmp	al, 0
+		jz	checkP
+		call endProgram
+		checkP:
+		mov	al, es:[__keyboardState][SCANCODE_P]
+		cmp	al, 0
+		je		@B
+	
+	; drawBackground
+	call 	drawBackground
+	
 start_over:
 	; set initial ball conditions
 	call setInit
    call updateScreenBuffer 
 	
+	int	21h
+ 	mov ah, 02h
+ 	mov	dh, 15
+ 	mov	dl, 9 ; 0 --> 39 elementen
+ 	int 10h
+ 	mov	ah, 09h		; select function 09h
+ 	mov	dx, offset msgMenu3	; load offset address of msg (in data segment)
+ 	int	21h
+	
 	;wait for spacebar to begin
     mov	ax, seg __keysActive
     mov	es, ax
-   
+ 
 @@:
+	mov	al, es:[__keyboardState][SCANCODE_Q]
+	cmp	al, 0
+	jz	checkspace
+	call endProgram
+	checkspace:
 	mov	al, es:[__keyboardState][SCANCODE_SPACEBAR]
 	cmp	al, 0
 	je		@B
@@ -222,13 +402,24 @@ start_over_decrement:
 	
 ; --- DRAWLOOP ---------------------------------------
 @main_loop:
-	
+
 	mov ax, [LIFE]
 	cmp ax, [MAXLIFE]
 	jne start_over_decrement
 	
 	call updateScreenBuffer
 	
+	mov ah, 02h
+	mov	dh, 1
+	mov	dl, 17 ; 0 --> 39 elementen
+	mov	bl, 0EH
+	int 10h
+	mov	ah, 09h		; select function 09h
+	mov	dx, offset msgScore	; load offset address of msg (in data segment)
+	int	21h
+	mov	ax, [SCORE]
+	push  ax
+	call printint
 	mov 	cx, [nbrBRICKS]
 	mov	bx, 0
 	detectBricksloop:
@@ -264,8 +455,7 @@ main ENDP
 
 updateScreenBuffer PROC NEAR
 	
-	call	clearScreenBuffer
-
+	call	clearScreenBuffer1
 	; draw ball
 	mov 	ax, offset BALLcolour
 	push 	ax
@@ -347,10 +537,95 @@ setInit PROC NEAR
 
 setInit ENDP
 
+drawBackground PROC NEAR
+
+	push 	bp
+	mov	bp, sp 
+	push	cx
+	push	dx
+	push	si
+	push	di
+	push	ds
+	push	es
+	
+	; draw TUBE1	
+	mov 	cx, [nbrTUBES1]
+	mov	bx, 0
+	@@:
+		mov 	ax, offset TUBE1colour
+		push 	ax
+		mov 	ax, offset TUBE1
+		push 	ax
+		lea 	ax, [posTUBE1][bx]
+		push 	ax
+		call 	drawObject
+		dec 	cx
+		add	bx, 4
+		cmp 	cx, 0
+		jnz	@B
+		
+	; draw TUBE2	
+	mov 	cx, [nbrTUBES2]
+	mov	bx, 0
+	@@:
+		mov 	ax, offset TUBE2colour
+		push 	ax
+		mov 	ax, offset TUBE2
+		push 	ax
+		lea 	ax, [posTUBE2][bx]
+		push 	ax
+		call 	drawObject
+		dec 	cx
+		add	bx, 4
+		cmp 	cx, 0
+		jnz	@B
+		
+	; draw PIPE1	
+	mov 	cx, [nbrPIPES1]
+	mov	bx, 0
+	@@:
+		mov 	ax, offset PIPE1colour
+		push 	ax
+		mov 	ax, offset PIPE1
+		push 	ax
+		lea 	ax, [posPIPE1][bx]
+		push 	ax
+		call 	drawObject
+		dec 	cx
+		add	bx, 4
+		cmp 	cx, 0
+		jnz	@B
+		
+	; draw PIPE2	
+	mov 	cx, [nbrPIPES2]
+	mov	bx, 0
+	@@:
+		mov 	ax, offset PIPE2colour
+		push 	ax
+		mov 	ax, offset PIPE2
+		push 	ax
+		lea 	ax, [posPIPE2][bx]
+		push 	ax
+		call 	drawObject
+		dec 	cx
+		add	bx, 4
+		cmp 	cx, 0
+		jnz	@B
+		
+	
+	pop	es
+	pop	ds
+	pop	di
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bp
+	ret	0
+	
+drawBackground ENDP
 
 ; --- FUNCTIONS -----------------------------------
 ; Fades the active colors to black
-
 
 calcSquareroot PROC NEAR
 ; calculate the square root of ax 
@@ -417,10 +692,10 @@ clearScreenBuffer PROC NEAR
 	mov		ax, seg screenBuffer ; Move the segment where screenBuffer is located
 	mov		es, ax
 	mov		di, offset screenBuffer
-	mov		cx, 64000/2 ; ax (2 elementen van de screenBuffer) 2 bits groot
-	mov 		al, 15
-	mov		ah, 15
-	rep		stosw
+	mov		cx, 64000/2 ; /2 want men springt volgens 2 byte en buffer is 64000 lang
+	mov 		al, backgrColor ; white
+	mov		ah, backgrColor ; white
+	rep		stosw ; mov	es:[di], ax	; set pixel for cx times
 	
 	pop	es
 	pop	di
@@ -428,6 +703,53 @@ clearScreenBuffer PROC NEAR
 	pop	ax
 	ret	0
 clearScreenBuffer ENDP
+
+clearScreenBuffer1 PROC NEAR
+	push	bp	
+	mov	bp, sp
+	
+	push	ax
+	push 	bx
+	push	cx
+	push 	dx
+	push	di
+	push	es
+	
+	cld
+	mov	ax, seg screenBuffer ; Move the segment where screenBuffer is located
+	mov	es, ax
+	mov	di, offset screenBuffer
+	add	di, llimit
+	mov	ax, ulimit
+	mov	bx, SCREENW
+	mul	bx
+	add	di, ax
+	
+	HORZL	equ rlimit-llimit
+	mov	ax, blimit
+	sub	ax, ulimit
+	mov	bx, ax
+	loopke:
+		mov	cx, HORZL/2
+		mov 	al, backgrColor ; white
+		mov	ah, backgrColor ; white
+		rep	stosw ; mov	es:[di], ax	; set pixel for cx times
+		add	di, SCREENW
+		sub	di, HORZL
+		dec bx
+		cmp bx, 0
+		jnz	loopke
+	
+	pop	es
+	pop	di
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	
+	pop	bp
+	ret	0
+clearScreenBuffer1 ENDP
 
 ; Updates the screen (copies contents from screenBuffer to screen)
 updateScreen PROC NEAR
@@ -502,8 +824,11 @@ handleInput PROC NEAR
 
 	@@:
 	; finally, let's put the ESC key status as return value in AX
-	mov	al, es:[__keyboardState][SCANCODE_ESC]	; test ESC
-
+	mov	al, es:[__keyboardState][SCANCODE_Q]	; test ESC
+	cmp	al, 0
+	jz @done	; jump next
+	call endProgram
+			
 	@done:
 	pop 	bx
 	pop	dx
@@ -627,9 +952,11 @@ wallDetection PROC NEAR
 @@:
 	mov ax, [posBALL][2]
 	add ax, [speedBALL][2]
+	sub ax, ulimit
 	cmp ax, 0
 	jge @F
 	neg ax
+	add ax, ulimit
 	mov [posBall][2], ax
 	mov ax, [posBall][0]
 	add ax, [speedBall][0]
@@ -777,8 +1104,7 @@ brickDetection PROC NEAR
 
     ;|Vergelijken of de bal erboven zit |
     ;------------------------------------
-    
-    
+      
 	mov ax, [posBALL][2]      ;nieuwe positie y coordinaten berekenen
 	add ax, [speedBALL][2]     
 	
@@ -786,7 +1112,7 @@ brickDetection PROC NEAR
 	mov dx, [posBRICK + si][2] 
 	
 	cmp ax, dx                ; je vergelijk de hoogte van de bovenkant van bal met de onderkant van de brick
-	jl brickDetection_done    ;jump to last want je weet dat de bal boven de blok zit
+	jl  brickDetection_done  ;jump to last want je weet dat de bal boven de blok zit
 	
 	
     ;|Vergelijken of de bal binnen de breedte zit onder de hoogte|
@@ -835,15 +1161,8 @@ brickDetection PROC NEAR
 	jg brickDetection_done    ;jump to last want je weet dat de bal onder de blok zit
 	
 	
-	
-	
-	;|Vergelijken of de bal binnen de breedte zit onder de basis|
+	;|Vergelijken of de bal binnen de breedte zit onder de basis |
     ;-------------------------------------------------------------
-    
-	
-	mov ax, [posBALL][0]      ; x positie updaten
-	add ax, [speedBALL][0]
-	mov bx, ax                 ; ax opslagen  in bx , in bx zit dus de x positie  
 	
 	
 	; eerste vergelijking ivm de positie van de brick en de bal : rechterlimiet
@@ -889,7 +1208,8 @@ bricksidecollision:
 	neg [speedBALL][0]   ; aanpassen van de speedvector
 	
 deletebrick:
-	mov [posBRICK + si][0], 0 ; delete brick
+	 mov [posBRICK + si][0], 0
+	add [SCORE], 100
 
 brickDetection_done:
 	; We are done
