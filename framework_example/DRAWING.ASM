@@ -468,10 +468,12 @@ updateScreenBuffer PROC NEAR
 	; draw bricks
 	mov 	cx, [nbrBRICKS]
 	mov	bx, 0
+	mov 	dx, 0 ; teller om te tellen ofdat er nog wel bricks op het speelveld zijn
 	drawBricksloop:
 		mov 	ax, [posBRICK][bx]
 		cmp	ax, 0
 		jz @F ; nextbrick
+		inc	dx
 		mov	ah, 0
 		mov	al, [colourBRICK][bx]
 		push 	ax
@@ -483,7 +485,12 @@ updateScreenBuffer PROC NEAR
 		add	bx, 4
 		cmp 	cx, 0
 		jnz	drawBricksloop
-
+	
+	;check if all bricks are gone	
+	cmp dx, 0
+	jnz @F
+	call endProgram
+	@@:
 	; draw bar
 	mov 	ax, offset BARcolour
 	push 	ax
