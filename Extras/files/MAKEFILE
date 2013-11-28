@@ -1,0 +1,10 @@
+debug: FILEA.ASM
+	ML /Zi /W3 /WX FILEA.ASM /Fe FILEA_D.EXE
+release: EX2_1.ASM
+	ML /W3 /WX FILEA.ASM /Fe EX1.EXE
+clean:
+	del *.EXE
+	del *.OBJ
+	del *.BAK
+cv:
+	cv /s FILEA_D.EXE
