@@ -13,9 +13,10 @@
 6. http://muruganad.com/8086/
 
 7. http://www.cs.virginia.edu/~evans/cs216/guides/x86.html
+
 8. http://www.tech-recipes.com/rx/1250/ (uitleg jump conditions)
 
-
+9. http://www.intel-assembler.it/portale/5/make-sound-from-the-speaker-in-assembly/8255-8255-8284-asm-program-example.asp#ixzz2jsrMp3TO
 
 ## GAME link
 
