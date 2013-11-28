@@ -899,18 +899,14 @@ movePaddle PROC NEAR
 
 movePaddle ENDP
 
-; --- HANDLE DETECTION ----------------------------
-newBallprop PROC NEAR
-;	- verzekerd nieuwe pos: dus vector -  afstand tot het object = offset van object
-;	- neg vector(x of y) afh van boven/onder of rechts/links
-; return: 0
-newBallprop ENDP
+; ==============================================================================
+; HANDLE DETECTION
+; ==============================================================================
 
-
-; miscchien gezamelijke functie
+; --- WALL DETECTION -----------------------------------------------------------
 wallDetection PROC NEAR
-; detecteert of er aanraking is met de wall op stap + 1
-; return: afstand tot de wall
+; detect collision at step n + 1
+
 	push	bp
 	mov	bp, sp
 
@@ -921,69 +917,96 @@ wallDetection PROC NEAR
 	push	di
 	push	es
 	
-	; controleren van de left wall
+	; -----------------------
+	; |  check left wall		|
+	; -----------------------
 	mov 	ax, [posBALL][0]
 	add 	ax, [speedBALL][0]
 	sub	ax, llimit
 	cmp ax, 0                 
-	jge @F    ;jump to forward 
+	jge @F							; jump to next check 
+	
+	; calculate new x position   
 	neg ax
 	add	ax, llimit
 	mov [posBall][0], ax
+	; calculate new y position
 	mov ax, [posBall][2]
 	add ax, [speedBall][2]
 	mov [posBall][2], ax
-	neg [speedBALL][0]        ;zet snelheid negatief
-	mov [aangepast], 1
-	jmp wallDetection_done
+	mov [aangepast], 1			; ball position is changed
 	
-   ; controleren van de right wall
+	; change speedvector
+	neg [speedBALL][0]       	; invert x speed
+	jmp wallDetection_done		; walldetection is done
+	
+	; -----------------------
+	; |  check right wall	|
+	; -----------------------
 @@:
 	mov ax, [posBALL][0]
 	add ax, [speedBALL][0]
 	add ax, [BALL][0]   
 	sub ax, rlimit 
 	cmp ax, 0
-	jle @F
+	jle @F							; jump to next check 
+	
+	; calculate new x position 
 	mov bx, rlimit
 	sub bx, ax
 	sub bx, [BALL][0] 
 	mov [posBall][0], bx
+	; calculate new y position
 	mov ax, [posBall][2]
 	add ax, [speedBall][2]
-	neg [speedBALL][0]
-	mov [aangepast], 1
-	jmp wallDetection_done
+	mov [aangepast], 1			; ball position is changed
+	
+	; change speedvector
+	neg [speedBALL][0]			; invert x speed
+	jmp wallDetection_done		; walldetection is done
 		
-	; controleren van de upper wall
+	; -----------------------
+	; |  check upper wall	|
+	; -----------------------
 @@:
 	mov ax, [posBALL][2]
 	add ax, [speedBALL][2]
 	sub ax, ulimit
 	cmp ax, 0
-	jge @F
-	neg ax
+	jge @F							; jump to next check
+	
+	; calculate new y position  
+	neg ax	
 	add ax, ulimit
 	mov [posBall][2], ax
+	; calculate new x position
 	mov ax, [posBall][0]
 	add ax, [speedBall][0]
 	mov [posBall][0], ax
-	neg [speedBALL][2]        ;zet snelheid negatief
-	mov [aangepast], 1
-	jmp wallDetection_done
+	mov [aangepast], 1			; ball position is changed
+	
+	; change speedvector
+	neg [speedBALL][2]        	; invert x speed
+	jmp wallDetection_done		; walldetection is done
 
-   ; controleren van de onderkant
+	; -----------------------
+	; |  check buttom wall	|
+	; -----------------------
 @@:
 	mov ax, [posBALL][2]
 	add ax, [speedBALL][2]
 	add ax, [BALL][2]
 	sub ax, blimit
 	cmp ax, 0
-	jle wallDetection_done 
-	dec [LIFE]
-	call setInit
-	  ;sluit alles af , videomode terugzetten, "je bent eraan!"
+	jle wallDetection_done 		; walldetection is done
+	
+	; game over
+	dec [LIFE]						; LIFE = LIFE - 1
+	call setInit					; set initial conditions
 
+  	; -----------------------
+  	; |   detection done		|
+  	; -----------------------
 wallDetection_done:
 	; We are done
 	pop	es
@@ -998,6 +1021,7 @@ wallDetection_done:
 
 wallDetection ENDP
 
+; --- PADDLE DETECTION ---------------------------------------------------------
 paddleDetection PROC NEAR
 ; detecteert of er aanraking is met de paddle op stap + 1
 ; return afstand tot de paddle en boven/onder (of rechts/links)
@@ -1045,6 +1069,7 @@ paddleDetection PROC NEAR
 	cmp bx, ax              	
 	jl paddleDetection_done 	; als het kleiner is dan de linkerlimiet dan buiten botsingszone
 	
+	call beep
 	; update y position of ball
 	mov ax, [posBar][2]
 	sub ax, [Ball][2]
@@ -1215,7 +1240,7 @@ bricksidecollision:
 	neg [speedBALL][0]   ; aanpassen van de speedvector
 	
 deletebrick:
-	 mov [posBRICK + si][0], 0
+	mov [posBRICK + si][0], 0
 	add [SCORE], 100
 
 brickDetection_done:
@@ -1487,6 +1512,35 @@ printints PROC NEAR
 	; return freeing param from stack (2 bytes)
 	ret	argBytes
 printints ENDP
+
+beep PROC NEAR
+
+	mov	al, 182 			; send command to PIT( Programmable Interval Timer)
+	out 43h, al				; to prepare speaker for the note
+	
+	; Set frequency
+	mov ax, 1521 			; f = 1193182 / x here x = 1521 and f = 783.00 (note = G)
+	out 42h, al 			; send LSB (by accessing channel 2 (controls PC speaker) of PIT)
+	mov al, ah				
+	out 42h, al				; send MSB
+	
+	; Turn on speaker
+	in al, 61h  			; get value of port 61h
+	or al, 00000011b 		; change last bits to 1
+	out 61h, al				; send value to port 61h
+	
+	; Pause
+	mov	cx, 1000000000
+	delay_loop:
+		loop	delay_loop
+	
+	; Turn off speaker
+	in al, 61h				; get value of port 61h
+	and al, 11111100b 	; change last bits to 0
+	out 61h, al				; send value to port 61h
+	
+	ret
+beep ENDP
 
 ; _------------------------------- END OF CODE ---------------------------------
 END main
