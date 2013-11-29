@@ -26,6 +26,12 @@ oldVideoMode	db ?
 msgMenu1 db "Press P to play$"
 msgMenu2 db "Press Q to quit$"
 msgMenu3 db "Press spacebar to begin$"  
+msgHighscore db "Higscore: $"
+HIGHSCORE dw ?
+msgLevels db "Level $"
+
+;LEVELS
+nbrLEVELS dw 1
 
 ;BAR
 BAR	word 30 , 3
@@ -411,6 +417,18 @@ start_over_decrement:
 	
 	mov ah, 02h
 	mov	dh, 1
+	mov	dl, 1 ; 0 --> 39 elementen
+	mov	bl, 0EH
+	int 10h
+	mov	ah, 09h		; select function 09h
+	mov	dx, offset msgLevels	; load offset address of msg (in data segment)
+	int	21h
+	mov	ax, [nbrLEVELS]
+	push  ax
+	call printint
+	
+	mov ah, 02h
+	mov	dh, 1
 	mov	dl, 17 ; 0 --> 39 elementen
 	mov	bl, 0EH
 	int 10h
@@ -420,6 +438,7 @@ start_over_decrement:
 	mov	ax, [SCORE]
 	push  ax
 	call printint
+	
 	mov 	cx, [nbrBRICKS]
 	mov	bx, 0
 	detectBricksloop:
@@ -517,7 +536,7 @@ updateScreenBuffer PROC NEAR
 		jnz	@B
 
 	; draw the screen buffer
-	call 	updateScreen
+	call 	updateScreen1
 	
 	ret 0
 	
@@ -618,6 +637,8 @@ drawBackground PROC NEAR
 		add	bx, 4
 		cmp 	cx, 0
 		jnz	@B
+		
+	call 	updateScreen
 		
 	
 	pop	es
@@ -777,8 +798,8 @@ updateScreen PROC NEAR
 	xor		di, di
 	
 	cld
-	mov		cx, 64000 / 2 ;set counter
 	waitVBlank	; wait for a VB (modifies AX and DX)
+	mov		cx, 64000 / 2 ;set counter
 	rep		movsw	; blit to screen	/ Move word at address DS:SI to address ES:DI
 	
 	pop		es
@@ -790,6 +811,57 @@ updateScreen PROC NEAR
 	pop		ax
 	ret		0
 updateScreen ENDP
+
+updateScreen1 PROC NEAR
+	push	ax
+	push	cx
+	push	dx
+	push	si
+	push	di
+	push	ds
+	push	es
+	
+	; setup source and dest segments
+	mov		ax, seg screenBuffer
+	mov		ds, ax
+	mov		si, offset screenBuffer
+	mov		ax, 0a000h	; video memory
+	mov		es, ax
+	xor		di, di
+	add		si, llimit
+	add		di, llimit
+	mov		ax, ulimit
+	mov		bx, SCREENW
+	mul		bx
+	add		si, ax
+	add		di, ax
+	
+	cld
+	waitVBlank	; wait for a VB (modifies AX and DX)
+	HORZL	equ rlimit-llimit
+	mov	ax, blimit
+	sub	ax, ulimit
+	mov	bx, ax
+	loopke:
+		mov	cx, HORZL/2
+		rep	movsw ; Move word at address DS:SI to address ES:DI
+		add	si, SCREENW
+		add	di, SCREENW
+		sub	si, HORZL
+		sub	di, HORZL
+		dec 	bx
+		cmp 	bx, 0
+		jnz loopke
+	
+	pop		es
+	pop		ds
+	pop		di
+	pop		si
+	pop		dx
+	pop		cx
+	pop		ax
+	ret		0
+updateScreen1 ENDP
 
 updateBall PROC NEAR
 	mov 	ax, [posBALL][0]
