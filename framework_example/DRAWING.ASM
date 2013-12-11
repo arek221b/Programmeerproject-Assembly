@@ -123,8 +123,11 @@ currentposBRICK dw ?
 nbrBRICKS dw nbrBRICKS1, nbrBRICKS2, nbrBRICKS1
 currentnbrBRICKS dw ?
 								
-colourBRICKs	dw offset colourBRICK1, offset colourBRICK2,  offset colourBRICK3
+colourBRICKs dw offset colourBRICK1, offset colourBRICK2,  offset colourBRICK3
 currentcolourBRICK dw ?
+
+stateBRICKS dw offset stateBRICKS1, offset stateBRICKS2, offset stateBRICKS3
+currentstateBRICKS dw ?
 
 currentvisBRICKS db 100 dup(1) ; visible bricks
 
@@ -190,9 +193,11 @@ posBRICK1	word  llimit+10+0, ulimit+10+0 ; x, y
 			
 nbrBRICKS1 equ 51
 
-colourBRICK1 byte 17 dup(12)	; row 1
-				byte 17 dup(2)		; row 2
-				byte 17 dup(5)		; row 3
+colourBRICK1 	byte 17 dup(12)	; row 1
+					byte 17 dup(2)		; row 2
+					byte 17 dup(5)		; row 3
+
+stateBRICKS1 db	nbrBRICKS1 dup(0) ; 0: static/ 1: move right/ 2: move left
 
 ; LEVEL 2
 ; -------------------------------------
@@ -254,6 +259,8 @@ colourBRICK2	byte 13,	7,	13, 12, 14,	15, 12, 6,  4,  11, 1,  12, 2, 8, 8, 2,  14
 					byte 13, 6,	13, 2,  9,  14, 5,  11, 9,  4,  12, 3,  2, 5, 9, 14, 6	; row 2
 					byte 8,  10, 4, 8,  8,  1,  5,  13, 14, 6,  1,  4,  8, 4, 8, 6,  8	; row 3
 
+stateBRICKS2 db	nbrBRICKS2 dup(0) ; 0: static/ 1: move right/ 2: move left
+
 ; LEVEL 3
 ; -------------------------------------
 posBRICK3	word  llimit+10+0, ulimit+10+0 ; x, y
@@ -313,6 +320,10 @@ nbrBRICKS3 dw 51
 colourBRICK3	byte 17 dup(5)		; row 1
 					byte 17 dup(9)		; row 2
 					byte 17 dup(13)	; row 3
+	
+stateBRICKS3 	byte	17 dup(1) ; 0: static/ 1: move right/ 2: move left
+					byte 17 dup(2) ; 0: static/ 1: move right/ 2: move left
+					byte 17 dup(1) ; 0: static/ 1: move right/ 2: move left
 	
 ; ------------------------------------------------------------
 ; BACKGROUND
@@ -607,6 +618,9 @@ newLevel PROC NEAR
 	mov	[currentnbrBRICKS], ax
 	mov 	ax, [posBRICKS][si]
 	mov	[currentposBRICK], ax
+	mov 	ax, [stateBRICKS][si]
+	mov	[currentstateBRICKS], ax
+	
 	
 	; print level
 	mov	ah, 02h			; select function 09h (set cursor)
@@ -717,6 +731,8 @@ DRAWloop:
 	
 	call wallDetection		; detect collision between ball and wall
 	
+	call moveBricks				; make the bricks move
+	
 	call handleInput			; handle userinput
 
 	call updateBall			; update ball (if not yet done by detection)
@@ -794,17 +810,6 @@ updateScreenBuffer PROC NEAR
 		lea	ax, [bx][si]
 		push 	ax
 		call 	drawBrick
-	;	mov 	bx, [currentposBRICK]
-	;	mov	ax, [bx][si]
-	;	cmp 	ax, rlimit
-	;	jle	add1
-	;	mov ax, llimit
-	;	sub	ax, [BRICK][0]
-	;	jmp done1
-	;	add1:
-	;	add ax, 10
-	;	done1:
-	;	mov	[bx][si], ax
 		@@:
 		inc 	di
 		add	si, 4
@@ -1719,6 +1724,69 @@ brickDetection_done:
 
 brickDetection ENDP
 
+moveBricks PROC NEAR
+
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	
+	mov	cx, [currentnbrBRICKS]
+	mov 	bx, [currentstateBRICKS]
+	mov	si, 0										; array index number
+	@@:
+		xor ah, ah
+		mov	al, [bx][si]
+		cmp al, 0
+		je nextBrick
+		push bx ; save bx
+		push si
+		sal si, 1
+		sal si, 1
+		cmp al, 1 ; check witch direction
+		je moveright
+		; move left
+			mov 	bx, [currentposBRICK]
+			mov	ax, [bx][si]
+			mov	dx, ax
+			add	dx, [BRICK][0]
+			cmp	dx, llimit
+			jge add1
+			mov 	ax, rlimit		; if crossed set to the other edge
+			jmp saveNewpos
+			add1:
+			dec ax
+			jmp saveNewpos
+		
+		; move right
+		moveright:
+			mov 	bx, [currentposBRICK]
+			mov	ax, [bx][si]
+			cmp 	ax, rlimit	; check if brick crossed edge
+			jle add2
+			mov ax, llimit		; if crossed set to the other edge
+			sub	ax, [BRICK][0]
+			jmp saveNewpos
+			add2:
+			inc ax
+		saveNewpos:
+		mov	[bx][si], ax
+		pop 	si
+		pop 	bx	; restore bx
+		nextBrick:
+		dec 	cx
+		inc 	si
+		cmp 	cx, 0
+		jnz	@B	
+		
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	ret	0
+
+moveBricks ENDP
+
 ; --- DRAWING -------------------------------------
 ; Draw a rectangle at the center of the screen buffer.
 ; W, H passed on stack.
@@ -1867,12 +1935,12 @@ endGame PROC NEAR
 	xor 	bh, bh 						; viode page 0
 	int 10h								; set cursor
 	mov	ah, 09h						; select function 09h (print string)
-	mov	dx, offset msgYScore		; load offset address of msgYScore (Your score: )
+	mov	dx, offset msgYScore		; load offset address of msgYScore (Your Score: )
 	int	21h
 	
 	mov ah, 02h							; select function 09h (set cursor)
 	mov	dh, 7							; y position of cursor
-	mov	dl, 20 						; x position of cursor
+	mov	dl, 18 						; x position of cursor
 	xor 	bh, bh 						; viode page 0
 	int 10h	
 	mov	ax, [SCORE]
