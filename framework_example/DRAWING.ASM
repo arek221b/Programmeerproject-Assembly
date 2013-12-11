@@ -22,16 +22,21 @@ blimit	equ 200	; buttom screen limit
 .DATA        ; data segment, variables
 oldVideoMode	db ?
 
-;MENU
+;STRINGS
 msgMenu1 db "Press P to play$"
+msgNewgame db "Press P to start a new game$"
 msgMenu2 db "Press Q to quit$"
 msgMenu3 db "Press spacebar to begin$"  
+SCORE		dw	0
+msgScore db "Score: $"
 msgHighscore db "Higscore: $"
-HIGHSCORE dw ?
+;HIGHSCORE dw ?
 msgLevels db "Level $"
+msgYScore db "Your Score: $"  
 
 ;LEVELS
-nbrLEVELS dw 1
+nbrLEVELS dw 2
+LEVEL	dw ?
 
 ;BAR
 BAR	word 30 , 3
@@ -45,7 +50,9 @@ BARLONG	word 50 , 3
 			byte 50 dup(1)
 			byte 50 dup(1)	
 			byte 50 dup(1)
-posBAR 	dw 150, 170
+
+iposBARx equ 150	; intiële bar position
+posBAR 	dw iposBARx, 170
 speedBAR	equ 12
 
 ;BALL
@@ -60,9 +67,14 @@ SIZEOFball	equ $-BALL
 BALLcolour	db SIZEOFball dup(15)
 posBALL 		dw 2 dup(?) ;pos x en y
 speedBALL 	dw 2 dup(?)
-speedBALLinit	dw 5, -5 
-newspeedBaLL 	db -7, -7, -6, -6, -6, -5, -5, -4, -4, -4, -3, -3, -3, -2, -2, -1, -1, -0
+speedBALLinit	dw 3, -3 
+abs2speedBALL1 dw 50
+newspeedBaLL1 	db -7, -7, -6, -6, -6, -5, -5, -4, -4, -4, -3, -3, -3, -2, -2, -1, -1, -0
 					db 0, 1, 1, 2, 2, 3, 3, 3, 4, 4, 4, 5, 5, 6, 6, 6, 7, 7
+abs2speedBALL dw 18
+newspeedBaLL 	db -4, -4, -4, -4, -3, -3, -3, -3, -2, -2, -2, -2, -1, -1, -1, -1, -0, -0
+					db 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4	
+					
 aangepast dw 0
 
 adressObject dw ?
@@ -70,8 +82,8 @@ adressColour dw ?
 
 ;BRICKS
 BRICK	word 15, 8	; x, y
-		
-posBRICK	word  llimit+10+0, ulimit+10+0 ; x, y
+
+posBRICK1	word  llimit+10+0, ulimit+10+0 ; x, y
 			word  llimit+10+17, ulimit+10+0 ; x, y
 			word  llimit+10+34, ulimit+10+0 ; x, y
 			word  llimit+10+51, ulimit+10+0 ; x, y
@@ -123,17 +135,59 @@ posBRICK	word  llimit+10+0, ulimit+10+0 ; x, y
 			word  llimit+10+255, ulimit+10+20 ; x, y
 			word  llimit+10+272, ulimit+10+20 ; x, y
  
-nbrBRICKS dw 51
+posBRICK2 word  llimit+10+68, ulimit+10+10 ; x, y
+			word  llimit+10+85, ulimit+10+10 ; x, y
+			word  llimit+10+102, ulimit+10+10 ; x, y
+			word  llimit+10+119, ulimit+10+10 ; x, y
+			word  llimit+10+136, ulimit+10+10 ; x, y
+			word  llimit+10+153, ulimit+10+10 ; x, y
+			word  llimit+10+170, ulimit+10+10 ; x, y
+			word  llimit+10+187, ulimit+10+10 ; x, y
+			word  llimit+10+204, ulimit+10+10 ; x, y
+			word  llimit+10+221, ulimit+10+10 ; x, y
+			word  llimit+10+238, ulimit+10+10 ; x, y
+			word  llimit+10+255, ulimit+10+10 ; x, y
+			word  llimit+10+272, ulimit+10+10 ; x, y
+			word  llimit+10+0, ulimit+10+20 ; x, y
+			word  llimit+10+17, ulimit+10+20 ; x, y
+			word  llimit+10+34, ulimit+10+20 ; x, y
+			word  llimit+10+51, ulimit+10+20 ; x, y
+			word  llimit+10+68, ulimit+10+20 ; x, y
+			word  llimit+10+85, ulimit+10+20 ; x, y
  
-colourBRICK	byte 68 dup(12)
+posBRICKS dw offset posBRICK1, offset posBRICK2
+
+currentposBRICK dw ?
+
+nbrBRICKS1 equ 51
+nbrBRICKS2 equ 19
+
+nbrBRICKS dw nbrBRICKS1, nbrBRICKS2
+currentnbrBRICKS dw ?
+ 
+colourBRICK1	byte 68 dup(12)
 				byte 68 dup(2)
 				byte 68 dup(5)
+				
+colourBRICK2	byte 68 dup(12)
+				byte 68 dup(2)
+				byte 68 dup(5)
+				
+colourBRICKs	dw offset colourBRICK1, offset colourBRICK2
+currentcolourBRICK dw ?
+
+; existence of bricks
+exBRICK1 db	nbrBRICKS1 dup(1)
+exBRICK2	db	nbrBRICKS2 dup(1)
+
+exBRICKS dw offset exBRICK1, offset exBRICK2
+
+currentexBRICKS dw ?
 	
 ; BACKGROUND
 
 backgrColor equ 0
-SCORE		dw	0
-msgScore db "Score: $"
+
 TUBE1		word 8, 27
 			byte 2 dup(0), 4 dup(1), 2 dup(0)
 			byte 0, 6 dup(1), 0
@@ -341,25 +395,27 @@ main PROC NEAR
 	call	setVideoMode
 	mov		[oldVideoMode], al
 	
-	
-	mov ah, 02h
-	mov	dh, 8
-	mov	dl, 10 ; 0 --> 39 elementen
-	int 10h
-	mov	ah, 09h		; select function 09h
-	mov	dx, offset msgMenu1	; load offset address of msg (in data segment)
+	; MENU
+	mov ah, 02h							; select function 09h (set cursor)
+	mov	dh, 8							; x position of cursor
+	mov	dl, 10 						; y position of cursor
+	xor 	bh, bh 						; viode page 0
+	int 10h								; set cursor
+	mov	ah, 09h						; select function 09h (print string)
+	mov	dx, offset msgMenu1		; load offset address of msgMenu1 (press P to begin)
 	int	21h
-	mov ah, 02h
-	mov	dh, 10
-	mov	dl, 10 ; 0 --> 39 elementen
-	int 10h
-	mov	ah, 09h		; select function 09h
-	mov	dx, offset msgMenu2	; load offset address of msg (in data segment)
+	mov ah, 02h							; select function 09h (set cursor)
+	mov	dh, 10						; x position of cursor
+	mov	dl, 10 						; y position of cursor
+	xor 	bh, bh 						; viode page 0
+	int 10h								; set cursor
+	mov	ah, 09h						; select function 09h (print string)
+	mov	dx, offset msgMenu2		; load offset address of msgMenu1 (press P to begin)
 	int	21h
 	
-	;wait for p to begin
-    mov	ax, seg __keysActive
-    mov	es, ax
+	; wait for p to begin
+  	mov	ax, seg __keysActive
+  	mov	es, ax
 	@@:
 		mov	al, es:[__keyboardState][SCANCODE_Q]
 		cmp	al, 0
@@ -370,27 +426,93 @@ main PROC NEAR
 		cmp	al, 0
 		je		@B
 	
-	; drawBackground
+	call 	newGame
+	
+	ret 0
+
+main ENDP
+	
+newGame PROC NEAR
+	
+	mov	[LIFE], 3	; give maxlife
+	mov	[SCORE], 0	; set score zero
+	mov	[LEVEL], 1	; begin with level 1
+	mov	[MAXLIFE], 3
+	
 	call 	drawBackground
+	call	newLevel
+	
+	ret 0
+	
+newGame ENDP
+	
+newLevel PROC NEAR	
+	
+	push 	bp
+	mov	bp, sp 
+	push	cx
+	push	dx
+	push	si
+	push	di
+	push	ds
+	push	es
+	
+	mov	ax, [LEVEL]
+	
+	cmp	ax, [nbrLEVELS]
+	jle @F
+	call endGame
+	@@:
+	push 	ax
+
+	sal 	ax, 1
+	sub	ax, 2 ; array starts at 0
+	mov	si, ax
+	mov 	ax, [colourBRICKs][si]
+	mov	[currentcolourBRICK], ax
+	mov 	ax, [nbrBRICKS][si]
+	mov	[currentnbrBRICKS], ax
+	mov 	ax, [posBRICKS][si]
+	mov	[currentposBRICK], ax
+	mov 	ax, [exBRICKS][si]
+	mov	[currentexBRICKS], ax
+	
+	mov	ah, 02h
+	mov	dh, 1
+	mov	dl, 7 ; 0 --> 39 elementen
+	xor 	bh, bh 						; viode page 0
+	int 	10h
+	call 	printint
+	
+	; restore all bricks
+	mov	si, 0
+	restoreloop:
+		mov	bx, [currentexBRICKS]
+		mov	ax, 1
+		mov	[bx][si], ax
+		inc 	si
+		cmp 	si, [currentnbrBRICKS]
+		jnz	restoreloop	
+	
+	mov 	[posBAR], iposBARx 		; set initial bar position
 	
 start_over:
-	; set initial ball conditions
-	call setInit
-   call updateScreenBuffer 
+	call setInit						; set initial ball conditions		
+   call updateScreenBuffer			; draw bricks/bar/ball in screenbuffer
 	
-	int	21h
- 	mov ah, 02h
- 	mov	dh, 15
- 	mov	dl, 9 ; 0 --> 39 elementen
- 	int 10h
- 	mov	ah, 09h		; select function 09h
- 	mov	dx, offset msgMenu3	; load offset address of msg (in data segment)
+	;wait for spacebar to begin 
+ 	mov ah, 02h							; select function 02h (set cursor)
+ 	mov	dh, 15						; x position of cursor
+ 	mov	dl, 9							; y position of cursor
+	xor 	bh, bh 						; viode page 0
+ 	int 10h								; set cursor
+ 	mov	ah, 09h						; select function 09h (print string)
+ 	mov	dx, offset msgMenu3		; load offset address of msgMenu3 (press P to begin)
  	int	21h
 	
-	;wait for spacebar to begin
-    mov	ax, seg __keysActive
-    mov	es, ax
- 
+   mov	ax, seg __keysActive
+   mov	es, ax
+
 @@:
 	mov	al, es:[__keyboardState][SCANCODE_Q]
 	cmp	al, 0
@@ -401,6 +523,7 @@ start_over:
 	cmp	al, 0
 	je		@B
 	jmp @main_loop
+	
 
 start_over_decrement: 
   dec [MAXLIFE]
@@ -417,46 +540,42 @@ start_over_decrement:
 	
 	mov ah, 02h
 	mov	dh, 1
-	mov	dl, 1 ; 0 --> 39 elementen
-	mov	bl, 0EH
+	mov	dl, 24 ; 0 --> 39 elementen
+	xor 	bh, bh 						; viode page 0
 	int 10h
-	mov	ah, 09h		; select function 09h
-	mov	dx, offset msgLevels	; load offset address of msg (in data segment)
-	int	21h
-	mov	ax, [nbrLEVELS]
-	push  ax
-	call printint
-	
-	mov ah, 02h
-	mov	dh, 1
-	mov	dl, 17 ; 0 --> 39 elementen
-	mov	bl, 0EH
-	int 10h
-	mov	ah, 09h		; select function 09h
-	mov	dx, offset msgScore	; load offset address of msg (in data segment)
-	int	21h
 	mov	ax, [SCORE]
 	push  ax
 	call printint
 	
-	mov 	cx, [nbrBRICKS]
-	mov	bx, 0
+	mov	di, 0
+	mov	si, 0
 	detectBricksloop:
-		mov 	ax, [posBRICK][bx]
-		cmp	ax, 0
+		mov 	bx, [currentexBRICKS]
+		mov	al, [bx][di]
+		cmp	al, 0
 		jz @F ; nextbrick
-
-		push 	bx ; om 1 brick te selecteren
+		mov 	ax, 1
+		push 	ax			; make room for return value
+		mov 	bx, [currentposBRICK]
+		mov	ax, [bx + 2][si]
+		push ax					; arg2 (y position)
+		mov	ax, [bx][si]
+		push ax					; arg1 (x position)
 		call  brickDetection
+		pop	ax
+		mov 	bx, [currentexBRICKS]
+		mov	[bx][di], al 
 		@@:
-		dec 	cx
-		add	bx, 4
-		cmp 	cx, 0
+		inc 	di
+		add	si, 4
+		cmp 	di, [currentnbrBRICKS]
 		jnz	detectBricksloop
 	
 	call paddleDetection
 	
 	call wallDetection
+	
+	call handleInput
 	
 	cmp [aangepast], 1
 	je @F
@@ -467,10 +586,18 @@ start_over_decrement:
 	cmp [LIFE], 0	
 	jnz @main_loop
 	
-	; end program when LIFE = 0
-	@main_drawdone:
-	call endProgram
-main ENDP
+	call endGame 	; end game when LIFE = 0
+	
+	pop	es
+	pop	ds
+	pop	di
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bp
+	ret	0
+	
+newLevel ENDP
 
 updateScreenBuffer PROC NEAR
 	
@@ -485,30 +612,36 @@ updateScreenBuffer PROC NEAR
 	call 	drawObject
 
 	; draw bricks
-	mov 	cx, [nbrBRICKS]
-	mov	bx, 0
+	mov	di, 0
+	mov	si, 0
 	mov 	dx, 0 ; teller om te tellen ofdat er nog wel bricks op het speelveld zijn
 	drawBricksloop:
-		mov 	ax, [posBRICK][bx]
-		cmp	ax, 0
+		mov 	bx, [currentexBRICKS]
+		mov	al, [bx][di]
+		cmp	al, 0
 		jz @F ; nextbrick
 		inc	dx
 		mov	ah, 0
-		mov	al, [colourBRICK][bx]
+		mov	bx, [currentcolourBRICK]
+		mov	al, [bx][si]
 		push 	ax
-		lea 	ax, [posBRICK][bx]
+		mov 	bx, [currentposBRICK]
+		lea	ax, [bx][si]
 		push 	ax
 		call 	drawBrick
 		@@:
-		dec 	cx
-		add	bx, 4
-		cmp 	cx, 0
+		inc 	di
+		add	si, 4
+		cmp 	di, [currentnbrBRICKS] 
 		jnz	drawBricksloop
 	
 	;check if all bricks are gone	
 	cmp dx, 0
 	jnz @F
-	call endProgram
+	mov 	ax, [LEVEL]
+	inc 	ax
+	mov [LEVEL], ax
+	call newLevel
 	@@:
 	; draw bar
 	mov 	ax, offset BARcolour
@@ -536,7 +669,7 @@ updateScreenBuffer PROC NEAR
 		jnz	@B
 
 	; draw the screen buffer
-	call 	updateScreen1
+	call 	updateGameScreen
 	
 	ret 0
 	
@@ -639,8 +772,35 @@ drawBackground PROC NEAR
 		jnz	@B
 		
 	call 	updateScreen
-		
 	
+	; Draw strings
+	mov ah, 02h							; select function 02h (set cursor)
+	mov	dh, 1							; x position of cursor
+	mov	dl, 17						; y position of cursor
+	xor 	bh, bh 						; viode page 0
+	int 10h								; set cursor
+	mov	ah, 09h						; select function 09h (print string)
+	mov	dx, offset msgScore		; load offset address of msgScore (highscore)
+	int	21h
+	
+	mov ah, 02h							; select function 02h (set cursor)
+	mov	dh, 1							; x position of cursor
+	mov	dl, 24						; y position of cursor
+	xor 	bh, bh 						; viode page 0
+	int 10h								; set cursor
+	mov	ax, [SCORE]
+	push  ax
+	call printint
+	
+	mov ah, 02h							; select function 02h (set cursor)
+	mov	dh, 1							; x position of cursor
+	mov	dl, 1							; y position of cursor
+	xor 	bh, bh 						; viode page 0
+	int 10h								; set cursor
+	mov	ah, 09h						; select function 09h (print string)
+	mov	dx, offset msgLevels		; load offset address of msgScore (highscore)
+	int	21h
+		
 	pop	es
 	pop	ds
 	pop	di
@@ -721,8 +881,8 @@ clearScreenBuffer PROC NEAR
 	mov		es, ax
 	mov		di, offset screenBuffer
 	mov		cx, 64000/2 ; /2 want men springt volgens 2 byte en buffer is 64000 lang
-	mov 		al, backgrColor ; white
-	mov		ah, backgrColor ; white
+	mov 		al, backgrColor
+	mov		ah, backgrColor
 	rep		stosw ; mov	es:[di], ax	; set pixel for cx times
 	
 	pop	es
@@ -812,7 +972,7 @@ updateScreen PROC NEAR
 	ret		0
 updateScreen ENDP
 
-updateScreen1 PROC NEAR
+updateGameScreen PROC NEAR
 	push	ax
 	push	cx
 	push	dx
@@ -861,7 +1021,7 @@ updateScreen1 PROC NEAR
 	pop		cx
 	pop		ax
 	ret		0
-updateScreen1 ENDP
+updateGameScreen ENDP
 
 updateBall PROC NEAR
 	mov 	ax, [posBALL][0]
@@ -870,6 +1030,7 @@ updateBall PROC NEAR
 	mov 	ax, [posBALL][2]
 	add 	ax, [speedBALL][2]
 	mov 	[posBALL][2], ax
+	ret 0
 updateBall ENDP
 
 ; Reads keyboard buffer and acts (returns non-zero if loop should end, 0 otherwise)
@@ -1167,11 +1328,11 @@ paddleDetection PROC NEAR
 	positive:
 	mul	ax
 	neg 	ax
-	add	ax, 50 ; constante snelheid van 50 = 5^2 + 5^2
+	add	ax, [abs2speedBALL] ; constante snelheid van 50 = 5^2 + 5^2
 	push 	ax
 	call 	calcSquareroot ; calculate square root of ax
 	neg	ax
-	neg	[speedBALL][2]
+	mov	[speedBALL][2], ax
 
 	paddleDetection_done:
 	; We are done
@@ -1200,11 +1361,12 @@ brickDetection PROC NEAR
 	push	di
 	push	es
 	
+	xposBRICK equ [bp + 4]
+	yposBRICK equ [bp + 6]
+	
 	;------------------
 	;BOVENKANT checken
 	;------------------
-	
-	mov 	si, [bp + 4]
 
     ;|Vergelijken of de bal erboven zit |
     ;------------------------------------
@@ -1213,7 +1375,7 @@ brickDetection PROC NEAR
 	add ax, [speedBALL][2]     
 	
 	add ax, [BALL][2]         ; y breedte van de bal
-	mov dx, [posBRICK + si][2] 
+	mov dx, yposBRICK
 	
 	cmp ax, dx                ; je vergelijk de hoogte van de bovenkant van bal met de onderkant van de brick
 	jl  brickDetection_done  ;jump to last want je weet dat de bal boven de blok zit
@@ -1229,9 +1391,9 @@ brickDetection PROC NEAR
 	; eerste vergelijking ivm de positie van de brick en de bal : rechterlimiet
 	
 	
-	mov ax, [posBRICK + si][0]            
+	mov ax, xposBRICK          
 	dec ax                  ; limiet van de botsingszone
-	add ax, [[BRICK][0]]       
+	add ax, [BRICK][0]
 	cmp bx, ax
 	jg brickDetection_done   ;als de je buiten de zone van de rechterlimiet  bent mag je verder spelen
 	
@@ -1239,7 +1401,7 @@ brickDetection PROC NEAR
 	;tweede vergelijking ivm  de positie van de brick en de bal : linkerlimiet
 	
 	
-	mov ax, [posBRICK + si][0]
+	mov ax, xposBRICK
 	inc ax                  ; limiet van de botsingszone
 	sub ax, [BALL][0]       ; trek de breedte van de bal eraf 
 	cmp bx, ax              ; positie van de bal  moet kleiner zijn  dan de linkerlimiet
@@ -1259,8 +1421,8 @@ brickDetection PROC NEAR
 	add ax, [speedBALL][2]     
 	
 	;add ax, [BALL][2]         ; y breedte van de bal
-	mov dx, [posBRICK + si][2] 
-	add dx, [[BRICK][2]]
+	mov dx, yposBRICK
+	add dx, [BRICK][2]
 	cmp ax, dx                ; je vergelijk de hoogte van de bovenkant van bal met de onderkant van de brick
 	jg brickDetection_done    ;jump to last want je weet dat de bal onder de blok zit
 	
@@ -1272,9 +1434,9 @@ brickDetection PROC NEAR
 	; eerste vergelijking ivm de positie van de brick en de bal : rechterlimiet
 	
 	
-	mov ax, [posBRICK + si][0]            
+	mov ax, xposBRICK           
 	dec ax                  ; limiet van de botsingszone
-	add ax, [[BRICK][0]]       
+	add ax, [BRICK][0]       
 	cmp bx, ax
 	jg brickDetection_done   ;als de je buiten de zone van de rechterlimiet  bent mag je verder spelen
 	
@@ -1282,7 +1444,7 @@ brickDetection PROC NEAR
 	;tweede vergelijking ivm  de positie van de brick en de bal : linkerlimiet
 	
 	
-	mov ax, [posBRICK + si][0]
+	mov ax, xposBRICK
 	inc ax                  ; limiet van de botsingszone
 	sub ax, [BALL][0]       ; trek de breedte van de bal eraf 
 	cmp bx, ax              ; positie van de bal  moet kleiner zijn  dan de linkerlimiet
@@ -1296,11 +1458,11 @@ brickDetection PROC NEAR
 	mov ax, [posBall][0]    ;voorafgaande positie ball
 	mov bx, ax
 	;in bx zit voorgaande positie ball
-	mov ax, [posBRICK + si][0]
+	mov ax, xposBRICK
 	cmp ax, bx 
 	jg bricksidecollision
 	
-	add ax, [[BRICK][0]]
+	add ax, [BRICK][0]
 	cmp ax, bx
 	jl bricksidecollision
 	
@@ -1312,8 +1474,9 @@ bricksidecollision:
 	neg [speedBALL][0]   ; aanpassen van de speedvector
 	
 deletebrick:
-	mov [posBRICK + si][0], 0
-	add [SCORE], 100
+	xor ax, ax
+	mov	[bp + 8] , ax
+	add 	[SCORE], 10
 
 brickDetection_done:
 	; We are done
@@ -1325,7 +1488,7 @@ brickDetection_done:
 	pop	ax
 	; return
 	pop	bp
-	ret	2
+	ret	4
 
 brickDetection ENDP
 
@@ -1457,6 +1620,81 @@ drawObject Proc NEAR
 	ret	6
 drawObject ENDP
 
+endGame PROC NEAR
+	
+	push	bp
+	mov	bp, sp
+	
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	
+ 	call clearScreenBuffer
+ 	call updateScreen
+	
+	; MENU
+	mov ah, 02h							; select function 09h (set cursor)
+	mov	dh, 5							; x position of cursor
+	mov	dl, 15 						; y position of cursor
+	xor 	bh, bh 						; viode page 0
+	int 10h								; set cursor
+	mov	ah, 09h						; select function 09h (print string)
+	mov	dx, offset msgYScore		; load offset address of msgMenu1 (press P to begin)
+	int	21h
+	
+	mov ah, 02h							; select function 09h (set cursor)
+	mov	dh, 7							; x position of cursor
+	mov	dl, 20 						; y position of cursor
+	xor 	bh, bh 						; viode page 0
+	int 10h	
+	mov	ax, [SCORE]
+	push  ax
+	call printint
+	
+	mov ah, 02h							; select function 09h (set cursor)
+	mov	dh, 17						; x position of cursor
+	mov	dl, 7 						; y position of cursor
+	xor 	bh, bh 						; viode page 0
+	int 10h								; set cursor
+	mov	ah, 09h						; select function 09h (print string)
+	mov	dx, offset msgNewgame	; load offset address of msgMenu1 (press P to begin)
+	int	21h	
+	
+	mov ah, 02h							; select function 09h (set cursor)
+	mov	dh, 19						; x position of cursor
+	mov	dl, 7 						; y position of cursor
+	xor 	bh, bh 						; viode page 0
+	int 10h								; set cursor
+	mov	ah, 09h						; select function 09h (print string)
+	mov	dx, offset msgMenu2		; load offset address of msgMenu1 (press Q to quit)
+	int	21h
+	
+	; wait for p to begin
+  	mov	ax, seg __keysActive
+  	mov	es, ax
+	@@:
+		mov	al, es:[__keyboardState][SCANCODE_Q]
+		cmp	al, 0
+		jz	checkP
+		call endProgram
+		checkP:
+		mov	al, es:[__keyboardState][SCANCODE_P]
+		cmp	al, 0
+		je		@B
+	
+	call 	newGame
+	
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	
+	pop	bp
+	ret 0
+	
+endGame ENDP
+
 endProgram PROC NEAR
 
 	; Restore original keyboard handler
@@ -1471,7 +1709,9 @@ endProgram PROC NEAR
 	; Exit to DOS
 	mov		ax, 4c00h	; exit to DOS function, return code 00h
 	int		21h			; call DOS
-
+	
+	ret 0
+	
 endProgram ENDP
 
 printint PROC NEAR
