@@ -28,7 +28,7 @@ blimit	equ 200	; buttom screen limit
 oldVideoMode	db ?
 
 ; ------------------------------------------------------------
-; STRINGS
+; MENU DATA
 ; ------------------------------------------------------------
 msgMenu1 db "Press P to play$"
 msgNewgame db "Press P to start a new game$"
@@ -41,6 +41,206 @@ msgHighscore db "Higscore: $"
 ;HIGHSCORE dw ?
 msgLevels db "Level $"
 msgYScore db "Your Score: $"  
+
+characterA 	word 28, 22
+				byte 12 dup(0), 4 dup(1),  12 dup(0)
+				byte 11 dup(0), 6 dup(1), 11 dup(0)
+				byte 11 dup(0), 6 dup(1), 11 dup(0)
+				byte 10 dup(0), 3 dup(1), 0, 4 dup(1), 10 dup(0)
+				byte 10 dup(0), 3 dup(1), 2 dup(0), 3 dup(1), 10 dup(0)
+				byte 9 dup(0), 3 dup(1), 3 dup(0), 4 dup(1), 9 dup(0)
+				byte 8 dup(0), 4 dup(1), 4 dup(0), 3 dup(1), 9 dup(0) 
+				byte 8 dup(0), 3 dup(1), 5 dup(0), 4 dup(1), 8 dup(0) 
+				byte 7 dup(0), 4 dup(1), 6 dup(0), 4 dup(1), 7 dup(0) 
+				byte 7 dup(0), 3 dup(1), 7 dup(0), 4 dup(1), 7 dup(0) 
+				byte 6 dup(0), 4 dup(1), 8 dup(0), 4 dup(1), 6 dup(0) 
+				byte 6 dup(0), 3 dup(1), 9 dup(0), 4 dup(1), 6 dup(0) 
+				byte 5 dup(0), 4 dup(1), 10 dup(0), 4 dup(1), 5 dup(0) 
+				byte 5 dup(0), 3 dup(1), 11 dup(0), 4 dup(1), 5 dup(0) 
+				byte 4 dup(0), 20 dup(1), 4 dup(0) 
+				byte 4 dup(0), 20 dup(1), 4 dup(0) 
+				byte 3 dup(0), 22 dup(1), 3 dup(0) 
+				byte 2 dup(0), 4 dup(1), 15 dup(0), 5 dup(1), 2 dup(0) 
+				byte 2 dup(0), 4 dup(1), 16 dup(0), 4 dup(1), 2 dup(0) 
+				byte 1 dup(0), 4 dup(1), 18 dup(0), 4 dup(1), 1 dup(0) 
+				byte 1 dup(0), 3 dup(1), 19 dup(0), 4 dup(1), 1 dup(0) 
+				byte 4 dup(1), 20 dup(0), 4 dup(1)		
+SIZEOFcharacterA	equ $-characterA 
+
+characterAcolour	db SIZEOFcharacterA dup(15)	
+poscharacterA dw 51, 48
+
+characterR 	word 20, 18
+				byte 17 dup(1), 3 dup(0)
+				byte 18 dup(1), 2 dup(0)
+				byte 18 dup(1), 2 dup(0)
+				byte 3 dup(1), 12 dup(0), 3 dup(1), 2 dup(0)
+				byte 3 dup(1), 12 dup(0), 3 dup(1), 2 dup(0)
+				byte 3 dup(1), 12 dup(0), 3 dup(1), 2 dup(0)
+				byte 3 dup(1), 12 dup(0), 3 dup(1), 2 dup(0)
+				byte 3 dup(1), 12 dup(0), 3 dup(1), 2 dup(0)
+				byte 18 dup(1), 2 dup(0)
+				byte 18 dup(1), 2 dup(0)
+				byte 17 dup(1), 3 dup(0)
+				byte 3 dup(1), 6 dup(0), 3 dup(1), 8 dup(0)
+				byte 3 dup(1), 7 dup(0), 4 dup(1), 6 dup(0)
+				byte 3 dup(1), 8 dup(0), 4 dup(1), 5 dup(0)
+				byte 3 dup(1), 9 dup(0), 4 dup(1), 4 dup(0)
+				byte 3 dup(1), 10 dup(0), 4 dup(1), 3 dup(0)
+				byte 3 dup(1), 11 dup(0), 4 dup(1), 2 dup(0)
+				byte 3 dup(1), 12 dup(0), 5 dup(1)
+SIZEOFcharacterR	equ $-characterR 
+
+characterRcolour	db SIZEOFcharacterR dup(15)	
+poscharacterR dw 51+28+4, 48+4
+
+characterK 	word 21, 18
+				byte 3 dup(1), 11 dup(0), 5 dup(1), 2 dup(0)
+				byte 3 dup(1), 9 dup(0), 5 dup(1), 4 dup(0)
+				byte 3 dup(1), 8 dup(0), 5 dup(1), 5 dup(0)
+				byte 3 dup(1), 6 dup(0), 5 dup(1), 7 dup(0)
+				byte 3 dup(1), 5 dup(0), 5 dup(1), 8 dup(0)
+				byte 3 dup(1), 3 dup(0), 5 dup(1), 10 dup(0)
+				byte 3 dup(1), 2 dup(0), 4 dup(1), 12 dup(0)
+				byte 3 dup(1), 1 dup(0), 4 dup(1), 13 dup(0)
+				byte 6 dup(1), 15 dup(0)
+				byte 7 dup(1), 14 dup(0)
+				byte 3 dup(1), 1 dup(0), 4 dup(1), 13 dup(0)
+				byte 3 dup(1), 2 dup(0), 4 dup(1), 12 dup(0)
+				byte 3 dup(1), 3 dup(0), 5 dup(1), 10 dup(0)
+				byte 3 dup(1), 5 dup(0), 5 dup(1), 8 dup(0)
+				byte 3 dup(1), 6 dup(0), 5 dup(1), 7 dup(0)
+				byte 3 dup(1), 8 dup(0), 5 dup(1), 5 dup(0)
+				byte 3 dup(1), 9 dup(0), 5 dup(1), 4 dup(0)
+				byte 3 dup(1), 11 dup(0), 7 dup(1)
+SIZEOFcharacterK	equ $-characterK 
+
+characterKcolour	db SIZEOFcharacterK dup(15)	
+poscharacterK dw 51+28+4+21+6, 48+4
+
+characterAs	word 24, 18
+				byte 10 dup(0), 4 dup(1),  10 dup(0)
+				byte 9 dup(0), 5 dup(1), 10 dup(0)
+				byte 9 dup(0), 6 dup(1),  9 dup(0)
+				byte 8 dup(0), 3 dup(1), 0, 3 dup(1), 9 dup(0)
+				byte 8 dup(0), 3 dup(1), 2 dup(0), 3 dup(1), 8 dup(0)
+				byte 7 dup(0), 3 dup(1), 3 dup(0), 4 dup(1), 7 dup(0)
+				byte 7 dup(0), 3 dup(1), 4 dup(0), 3 dup(1), 7 dup(0)
+				byte 6 dup(0), 3 dup(1), 5 dup(0), 4 dup(1), 6 dup(0)
+				byte 5 dup(0), 3 dup(1), 7 dup(0), 3 dup(1), 6 dup(0)
+				byte 5 dup(0), 3 dup(1), 8 dup(0), 3 dup(1), 5 dup(0)
+				byte 4 dup(0), 3 dup(1), 9 dup(0), 4 dup(1), 4 dup(0)
+				byte 4 dup(0), 16 dup(1), 4 dup(0)
+				byte 3 dup(0), 18 dup(1), 3 dup(0)
+				byte 3 dup(0), 18 dup(1), 3 dup(0)
+				byte 2 dup(0), 3 dup(1), 13 dup(0), 4 dup(1), 2 dup(0)
+				byte 1 dup(0), 4 dup(1), 14 dup(0), 4 dup(1), 1 dup(0)
+				byte 1 dup(0), 3 dup(1), 15 dup(0), 4 dup(1), 1 dup(0)
+				byte 4 dup(1), 16 dup(0), 4 dup(1)
+SIZEOFcharacterAs	equ $-characterAs 
+
+characterAscolour	db SIZEOFcharacterAs dup(15)	
+poscharacterAs dw 51+28+4+21+6+21+1, 48+4
+
+characterN	word 21, 18
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 4 dup(1), 14 dup(0), 3 dup(1)
+				byte 5 dup(1), 13 dup(0), 3 dup(1)
+				byte 7 dup(1), 11 dup(0), 3 dup(1)
+				byte 3 dup(1), 0, 4 dup(1), 10 dup(0), 3 dup(1)
+				byte 3 dup(1), 2 dup(0), 4 dup(1), 9 dup(0), 3 dup(1)
+				byte 3 dup(1), 3 dup(0), 4 dup(1), 8 dup(0), 3 dup(1)
+				byte 3 dup(1), 4 dup(0), 4 dup(1), 7 dup(0), 3 dup(1)
+				byte 3 dup(1), 5 dup(0), 4 dup(1), 6 dup(0), 3 dup(1)
+				byte 3 dup(1), 6 dup(0), 4 dup(1), 5 dup(0), 3 dup(1)
+				byte 3 dup(1), 7 dup(0), 4 dup(1), 4 dup(0), 3 dup(1)
+				byte 3 dup(1), 8 dup(0), 5 dup(1), 2 dup(0), 3 dup(1)
+				byte 3 dup(1), 9 dup(0), 5 dup(1), 1 dup(0), 3 dup(1)
+				byte 3 dup(1), 11 dup(0), 3 dup(1), 1 dup(0), 3 dup(1)
+				byte 3 dup(1), 12 dup(0), 6 dup(1)
+				byte 3 dup(1), 13 dup(0), 5 dup(1)
+				byte 3 dup(1), 14 dup(0), 4 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+SIZEOFcharacterN	equ $-characterN 
+
+characterNcolour	db SIZEOFcharacterN dup(15)	
+poscharacterN dw 51+28+4+21+6+21+1+24+6, 48+4
+
+characterO	word 21, 18
+				byte 0, 19 dup(1), 0
+				byte 21 dup(1)
+				byte 21 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 21 dup(1)
+				byte 21 dup(1)
+				byte 0, 19 dup(1), 0
+SIZEOFcharacterO	equ $-characterO 
+
+characterOcolour	db SIZEOFcharacterO dup(15)	
+poscharacterO dw 51+28+4+21+6+21+1+24+6+21+8, 48+4
+
+characterI	word 3, 18
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+				byte 3 dup(1)
+SIZEOFcharacterI	equ $-characterI 
+
+characterIcolour	db SIZEOFcharacterI dup(15)	
+poscharacterI dw 51+28+4+21+6+21+1+24+6+21+8+21+8, 48+4
+
+characterD	word 21, 18
+				byte 15 dup(1), 6 dup(0)
+				byte 17 dup(1), 4 dup(0)
+				byte 19 dup(1), 2 dup(0)
+				byte 3 dup(1), 11 dup(0), 5 dup(1), 2 dup(0)
+				byte 3 dup(1), 13 dup(0), 4 dup(1), 1 dup(0)
+				byte 3 dup(1), 14 dup(0), 3 dup(1), 1 dup(0)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 15 dup(0), 3 dup(1)
+				byte 3 dup(1), 14 dup(0), 3 dup(1), 1 dup(0)
+				byte 3 dup(1), 13 dup(0), 4 dup(1), 1 dup(0)
+				byte 3 dup(1), 11 dup(0), 5 dup(1), 2 dup(0)
+				byte 19 dup(1), 2 dup(0)
+				byte 17 dup(1), 4 dup(0)
+				byte 15 dup(1), 6 dup(0)
+SIZEOFcharacterD	equ $-characterD 
+
+characterDcolour	db SIZEOFcharacterD dup(15)	
+poscharacterD dw 51+28+4+21+6+21+1+24+6+21+8+21+8+3+10, 48+4
+
+MENUbar dw SCREENW, 4
+posMENUbar dw 0, 26
+
 
 ; ------------------------------------------------------------
 ; BAR DATA
@@ -526,19 +726,23 @@ main PROC NEAR
 	call	setVideoMode
 	mov		[oldVideoMode], al
 	
+	call printArkanoid
+	
+	call updateScreen
+	
 	; MENU
 	; -------------------------------------
 	mov ah, 02h							; select function 09h (set cursor)
-	mov	dh, 8							; y position of cursor
-	mov	dl, 10 						; x position of cursor
+	mov	dh, 15							; y position of cursor
+	mov	dl, 12 						; x position of cursor
 	xor 	bh, bh 						; viode page 0
 	int 10h								; set cursor
 	mov	ah, 09h						; select function 09h (print string)
 	mov	dx, offset msgMenu1		; load offset address of msgMenu1 (press P to begin)
 	int	21h
 	mov ah, 02h							; select function 09h (set cursor)
-	mov	dh, 10						; y position of cursor
-	mov	dl, 10 						; x position of cursor
+	mov	dh, 17						; y position of cursor
+	mov	dl, 11 						; x position of cursor
 	xor 	bh, bh 						; viode page 0
 	int 10h								; set cursor
 	mov	ah, 09h						; select function 09h (print string)
@@ -783,7 +987,7 @@ printScore ENDP
 
 updateScreenBuffer PROC NEAR
 	
-	call	clearScreenBuffer1
+	call	clearGameBuffer
 	; draw ball
 	mov 	ax, offset BALLcolour
 	push 	ax
@@ -806,10 +1010,12 @@ updateScreenBuffer PROC NEAR
 		mov	bx, [currentcolourBRICK]
 		mov	al, [bx][di]
 		push 	ax
+		lea	ax, [BRICK]
+		push 	ax
 		mov 	bx, [currentposBRICK]
 		lea	ax, [bx][si]
 		push 	ax
-		call 	drawBrick
+		call 	drawRECT
 		@@:
 		inc 	di
 		add	si, 4
@@ -887,6 +1093,8 @@ drawBackground PROC NEAR
 	push	di
 	push	ds
 	push	es
+	
+	call clearScreenBuffer
 	
 	; draw TUBE1	
 	mov 	cx, [nbrTUBES1]
@@ -1064,7 +1272,7 @@ clearScreenBuffer PROC NEAR
 	ret	0
 clearScreenBuffer ENDP
 
-clearScreenBuffer1 PROC NEAR
+clearGameBuffer PROC NEAR
 	push	bp	
 	mov	bp, sp
 	
@@ -1109,7 +1317,7 @@ clearScreenBuffer1 PROC NEAR
 	
 	pop	bp
 	ret	0
-clearScreenBuffer1 ENDP
+clearGameBuffer ENDP
 
 ; Updates the screen (copies contents from screenBuffer to screen)
 updateScreen PROC NEAR
@@ -1790,7 +1998,7 @@ moveBricks ENDP
 ; --- DRAWING -------------------------------------
 ; Draw a rectangle at the center of the screen buffer.
 ; W, H passed on stack.
-drawBrick PROC NEAR
+drawRECT PROC NEAR
 	push	bp
 	mov	bp, sp
 	
@@ -1813,14 +2021,15 @@ drawBrick PROC NEAR
 	add   ax, [bx][0]
 	add	ax, offset screenBuffer
 	mov	di, ax
-	mov	cx, [BRICK][2]
+	mov 	bx, [bp + 6]
+	mov	cx, [bx][2]
 	 drawloop:
 	 	push cx  
-	 	mov  cx, [BRICK][0]  ; rect Width
-	 	mov  al, [bp + 6]  ; color
+	 	mov  cx, [bx][0]  ; rect Width
+	 	mov  al, [bp + 8]  ; color
 	 	cld
 	 	rep  stosb  ; draw  
-	 	sub  di, [BRICK][0]
+	 	sub  di, [bx][0]
 	 	add  di, SCREENW  ; jump to next pixel (on next line)
 	 	pop   cx
 	 	loop  drawloop
@@ -1835,8 +2044,8 @@ drawBrick PROC NEAR
 	pop	ax
 	; return
 	pop	bp
-	ret	4
-drawBrick  ENDP
+	ret	6
+drawRECT  ENDP
  
 drawObject Proc NEAR
 
@@ -2120,6 +2329,99 @@ printints PROC NEAR
 	; return freeing param from stack (2 bytes)
 	ret	argBytes
 printints ENDP
+
+printArkanoid PROC NEAR
+
+	push 	ax
+	push 	cx
+	
+	mov 	ax, offset characterAcolour
+	push 	ax
+	mov 	ax, offset characterA
+	push 	ax
+	mov 	ax, offset poscharacterA
+	push 	ax
+	call 	drawObject
+	
+	mov 	ax, offset characterRcolour
+	push 	ax
+	mov 	ax, offset characterR
+	push 	ax
+	mov 	ax, offset poscharacterR
+	push 	ax
+	call 	drawObject
+	
+	mov 	ax, offset characterKcolour
+	push 	ax
+	mov 	ax, offset characterK
+	push 	ax
+	mov 	ax, offset poscharacterK
+	push 	ax
+	call 	drawObject
+	
+	mov 	ax, offset characterAscolour
+	push 	ax
+	mov 	ax, offset characterAs
+	push 	ax
+	mov 	ax, offset poscharacterAs
+	push 	ax
+	call 	drawObject
+	
+	mov 	ax, offset characterNcolour
+	push 	ax
+	mov 	ax, offset characterN
+	push 	ax
+	mov 	ax, offset poscharacterN
+	push 	ax
+	call 	drawObject
+	
+	mov 	ax, offset characterOcolour
+	push 	ax
+	mov 	ax, offset characterO
+	push 	ax
+	mov 	ax, offset poscharacterO
+	push 	ax
+	call 	drawObject
+	
+	mov 	ax, offset characterIcolour
+	push 	ax
+	mov 	ax, offset characterI
+	push 	ax
+	mov 	ax, offset poscharacterI
+	push 	ax
+	call 	drawObject
+	
+	mov 	ax, offset characterDcolour
+	push 	ax
+	mov 	ax, offset characterD
+	push 	ax
+	mov 	ax, offset poscharacterD
+	push 	ax
+	call 	drawObject
+	
+	mov	cx, 2
+	MENUbarloop:
+		xor	ah, ah
+		mov	al, 15
+		push 	ax
+		lea 	ax, [MENUbar]
+		push 	ax
+		lea 	ax, [posMENUbar]
+		push 	ax
+		call 	drawRECT
+		
+		mov 	ax, [posMENUbar][2]
+		add	ax, 66
+		mov	[posMENUbar][2], ax
+		dec cx
+		cmp cx, 0
+		jne MENUbarloop
+	
+	pop	cx
+	pop 	ax
+	ret 0
+
+printArkanoid ENDP
 
 beep PROC NEAR
 
