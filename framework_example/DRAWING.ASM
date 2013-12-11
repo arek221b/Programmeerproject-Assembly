@@ -27,6 +27,7 @@ msgMenu1 db "Press P to play$"
 msgNewgame db "Press P to start a new game$"
 msgMenu2 db "Press Q to quit$"
 msgMenu3 db "Press spacebar to begin$"  
+msgExit db "Press ESC to exit$"
 SCORE		dw	0
 msgScore db "Score: $"
 msgHighscore db "Higscore: $"
@@ -35,7 +36,7 @@ msgLevels db "Level $"
 msgYScore db "Your Score: $"  
 
 ;LEVELS
-nbrLEVELS dw 2
+nbrLEVELS dw 3
 LEVEL	dw ?
 
 ;BAR
@@ -134,55 +135,141 @@ posBRICK1	word  llimit+10+0, ulimit+10+0 ; x, y
 			word  llimit+10+238, ulimit+10+20 ; x, y
 			word  llimit+10+255, ulimit+10+20 ; x, y
 			word  llimit+10+272, ulimit+10+20 ; x, y
- 
-posBRICK2 word  llimit+10+68, ulimit+10+10 ; x, y
+
+posBRICK2	word  llimit+10+0, ulimit+10+0 ; x, y
+			word  llimit+10+34, ulimit+10+0 ; x, y
+			word  llimit+10+68, ulimit+10+0 ; x, y
+			word  llimit+10+102, ulimit+10+0 ; x, y
+			word  llimit+10+136, ulimit+10+0 ; x, y
+			word  llimit+10+170, ulimit+10+0 ; x, y
+			word  llimit+10+204, ulimit+10+0 ; x, y
+			word  llimit+10+238, ulimit+10+0 ; x, y
+			word  llimit+10+272, ulimit+10+0 ; x, y
+			word  llimit+10+17, ulimit+10+10 ; x, y
+			word  llimit+10+51, ulimit+10+10 ; x, y
 			word  llimit+10+85, ulimit+10+10 ; x, y
-			word  llimit+10+102, ulimit+10+10 ; x, y
 			word  llimit+10+119, ulimit+10+10 ; x, y
-			word  llimit+10+136, ulimit+10+10 ; x, y
 			word  llimit+10+153, ulimit+10+10 ; x, y
-			word  llimit+10+170, ulimit+10+10 ; x, y
 			word  llimit+10+187, ulimit+10+10 ; x, y
-			word  llimit+10+204, ulimit+10+10 ; x, y
 			word  llimit+10+221, ulimit+10+10 ; x, y
-			word  llimit+10+238, ulimit+10+10 ; x, y
 			word  llimit+10+255, ulimit+10+10 ; x, y
-			word  llimit+10+272, ulimit+10+10 ; x, y
+			word  llimit+10+0, ulimit+10+20 ; x, y
+			word  llimit+10+34, ulimit+10+20 ; x, y
+			word  llimit+10+68, ulimit+10+20 ; x, y
+			word  llimit+10+102, ulimit+10+20 ; x, y
+			word  llimit+10+136, ulimit+10+20 ; x, y
+			word  llimit+10+170, ulimit+10+20 ; x, y
+			word  llimit+10+204, ulimit+10+20 ; x, y
+			word  llimit+10+238, ulimit+10+20 ; x, y
+			word  llimit+10+272, ulimit+10+20 ; x, y
+			word  llimit+10+17, ulimit+10+30 ; x, y
+			word  llimit+10+51, ulimit+10+30 ; x, y
+			word  llimit+10+85, ulimit+10+30 ; x, y
+			word  llimit+10+119, ulimit+10+30 ; x, y
+			word  llimit+10+153, ulimit+10+30 ; x, y
+			word  llimit+10+187, ulimit+10+30 ; x, y
+			word  llimit+10+221, ulimit+10+30 ; x, y
+			word  llimit+10+255, ulimit+10+30 ; x, y
+			word  llimit+10+0, ulimit+10+40 ; x, y
+			word  llimit+10+34, ulimit+10+40 ; x, y
+			word  llimit+10+68, ulimit+10+40 ; x, y
+			word  llimit+10+102, ulimit+10+40 ; x, y
+			word  llimit+10+136, ulimit+10+40 ; x, y
+			word  llimit+10+170, ulimit+10+40 ; x, y
+			word  llimit+10+204, ulimit+10+40 ; x, y
+			word  llimit+10+238, ulimit+10+40 ; x, y
+			word  llimit+10+272, ulimit+10+40 ; x, y
+			word  llimit+10+17, ulimit+10+50 ; x, y
+			word  llimit+10+51, ulimit+10+50 ; x, y
+			word  llimit+10+85, ulimit+10+50 ; x, y
+			word  llimit+10+119, ulimit+10+50 ; x, y
+			word  llimit+10+153, ulimit+10+50 ; x, y
+			word  llimit+10+187, ulimit+10+50 ; x, y
+			word  llimit+10+221, ulimit+10+50 ; x, y
+			word  llimit+10+255, ulimit+10+50 ; x, y
+
+
+posBRICK3	word  llimit+10+0, ulimit+10+0 ; x, y
+			word  llimit+10+17, ulimit+10+0 ; x, y
+			word  llimit+10+34, ulimit+10+0 ; x, y
+			word  llimit+10+51, ulimit+10+0 ; x, y
+			word  llimit+10+68, ulimit+10+0 ; x, y
+			word  llimit+10+85, ulimit+10+0 ; x, y
+			word  llimit+10+102, ulimit+10+0 ; x, y
+			word  llimit+10+119, ulimit+10+0 ; x, y
+			word  llimit+10+136, ulimit+10+0 ; x, y
+			word  llimit+10+153, ulimit+10+0 ; x, y
+			word  llimit+10+170, ulimit+10+0 ; x, y
+			word  llimit+10+187, ulimit+10+0 ; x, y
+			word  llimit+10+204, ulimit+10+0 ; x, y
+			word  llimit+10+221, ulimit+10+0 ; x, y
+			word  llimit+10+238, ulimit+10+0 ; x, y
+			word  llimit+10+255, ulimit+10+0 ; x, y
+			word  llimit+10+272, ulimit+10+0 ; x, y
 			word  llimit+10+0, ulimit+10+20 ; x, y
 			word  llimit+10+17, ulimit+10+20 ; x, y
 			word  llimit+10+34, ulimit+10+20 ; x, y
 			word  llimit+10+51, ulimit+10+20 ; x, y
 			word  llimit+10+68, ulimit+10+20 ; x, y
 			word  llimit+10+85, ulimit+10+20 ; x, y
+			word  llimit+10+102, ulimit+10+20 ; x, y
+			word  llimit+10+119, ulimit+10+20 ; x, y
+			word  llimit+10+136, ulimit+10+20 ; x, y
+			word  llimit+10+153, ulimit+10+20 ; x, y
+			word  llimit+10+170, ulimit+10+20 ; x, y
+			word  llimit+10+187, ulimit+10+20 ; x, y
+			word  llimit+10+204, ulimit+10+20 ; x, y
+			word  llimit+10+221, ulimit+10+20 ; x, y
+			word  llimit+10+238, ulimit+10+20 ; x, y
+			word  llimit+10+255, ulimit+10+20 ; x, y
+			word  llimit+10+272, ulimit+10+20 ; x, y
+			word  llimit+10+0, ulimit+10+40 ; x, y
+			word  llimit+10+17, ulimit+10+40 ; x, y
+			word  llimit+10+34, ulimit+10+40 ; x, y
+			word  llimit+10+51, ulimit+10+40 ; x, y
+			word  llimit+10+68, ulimit+10+40 ; x, y
+			word  llimit+10+85, ulimit+10+40 ; x, y
+			word  llimit+10+102, ulimit+10+40 ; x, y
+			word  llimit+10+119, ulimit+10+40 ; x, y
+			word  llimit+10+136, ulimit+10+40 ; x, y
+			word  llimit+10+153, ulimit+10+40 ; x, y
+			word  llimit+10+170, ulimit+10+40 ; x, y
+			word  llimit+10+187, ulimit+10+40 ; x, y
+			word  llimit+10+204, ulimit+10+40 ; x, y
+			word  llimit+10+221, ulimit+10+40 ; x, y
+			word  llimit+10+238, ulimit+10+40 ; x, y
+			word  llimit+10+255, ulimit+10+40 ; x, y
+			word  llimit+10+272, ulimit+10+40 ; x, y
  
-posBRICKS dw offset posBRICK1, offset posBRICK2
+nbrBRICKS3 dw 51
+ 
+colourBRICK3	byte 17 dup(5)
+				byte 17 dup(9)
+				byte 17 dup(13)
+ 
+posBRICKS dw offset posBRICK1,  offset posBRICK2, offset posBRICK3
 
 currentposBRICK dw ?
 
 nbrBRICKS1 equ 51
-nbrBRICKS2 equ 19
+nbrBRICKS2 equ 51
 
-nbrBRICKS dw nbrBRICKS1, nbrBRICKS2
+nbrBRICKS dw nbrBRICKS1, nbrBRICKS2, nbrBRICKS1
 currentnbrBRICKS dw ?
  
-colourBRICK1	byte 68 dup(12)
-				byte 68 dup(2)
-				byte 68 dup(5)
-				
-colourBRICK2	byte 68 dup(12)
-				byte 68 dup(2)
-				byte 68 dup(5)
-				
-colourBRICKs	dw offset colourBRICK1, offset colourBRICK2
+colourBRICK1 byte 17 dup(12)
+				byte 17 dup(2)
+				byte 17 dup(5)
+
+colourBRICK2	byte 13, 7, 13, 12, 14, 15, 12, 6, 4, 11, 1, 12, 2, 8, 8, 2, 14
+					byte 13, 6,	13, 2, 9, 14, 5, 11, 9, 4, 12, 3, 2, 5, 9, 14, 6, 8
+					byte 10, 4, 8, 8, 1, 5, 13, 14, 6, 1, 4, 8, 4, 8, 6, 8
+								
+colourBRICKs	dw offset colourBRICK1, offset colourBRICK2,  offset colourBRICK3
 currentcolourBRICK dw ?
 
 ; existence of bricks
-exBRICK1 db	nbrBRICKS1 dup(1)
-exBRICK2	db	nbrBRICKS2 dup(1)
-
-exBRICKS dw offset exBRICK1, offset exBRICK2
-
-currentexBRICKS dw ?
+currentexBRICKS db ?
 	
 ; BACKGROUND
 
@@ -410,14 +497,14 @@ main PROC NEAR
 	xor 	bh, bh 						; viode page 0
 	int 10h								; set cursor
 	mov	ah, 09h						; select function 09h (print string)
-	mov	dx, offset msgMenu2		; load offset address of msgMenu1 (press P to begin)
+	mov	dx, offset msgExit		; load offset address of msgMenu1 (press Q to exit)
 	int	21h
 	
 	; wait for p to begin
   	mov	ax, seg __keysActive
   	mov	es, ax
 	@@:
-		mov	al, es:[__keyboardState][SCANCODE_Q]
+		mov	al, es:[__keyboardState][SCANCODE_ESC]
 		cmp	al, 0
 		jz	checkP
 		call endProgram
@@ -462,9 +549,8 @@ newLevel PROC NEAR
 	cmp	ax, [nbrLEVELS]
 	jle @F
 	call endGame
+	
 	@@:
-	push 	ax
-
 	sal 	ax, 1
 	sub	ax, 2 ; array starts at 0
 	mov	si, ax
@@ -474,14 +560,14 @@ newLevel PROC NEAR
 	mov	[currentnbrBRICKS], ax
 	mov 	ax, [posBRICKS][si]
 	mov	[currentposBRICK], ax
-	mov 	ax, [exBRICKS][si]
-	mov	[currentexBRICKS], ax
 	
 	mov	ah, 02h
 	mov	dh, 1
 	mov	dl, 7 ; 0 --> 39 elementen
 	xor 	bh, bh 						; viode page 0
 	int 	10h
+	mov 	ax, [LEVEL]
+	push 	ax
 	call 	printint
 	
 	mov ah, 02h
@@ -493,21 +579,23 @@ newLevel PROC NEAR
 	push  ax
 	call printint
 	
-	; restore all bricks
+	; set all bricks visible
+	mov	cx, [currentnbrBRICKS]
 	mov	si, 0
 	restoreloop:
-		mov	bx, [currentexBRICKS]
-		mov	ax, 1
-		mov	[bx][si], ax
+		mov	al, 1
+		xor 	ah, ah	
+		mov	[currentexBRICKS][si], al
+		dec 	cx
 		inc 	si
-		cmp 	si, [currentnbrBRICKS]
+		cmp 	cx, 0
 		jnz	restoreloop	
 	
 	mov 	[posBAR], iposBARx 		; set initial bar position
 	
 start_over:
 	call setInit						; set initial ball conditions		
-   call updateScreenBuffer			; draw bricks/bar/ball in screenbuffer
+   call updateScreenBuffer			; draw bricks/bar/ball/harts in screenbuffer
 	
 	;wait for spacebar to begin 
  	mov ah, 02h							; select function 02h (set cursor)
@@ -523,16 +611,41 @@ start_over:
    mov	es, ax
 
 @@:
+	mov cx, 999999999
+	loopke23:
+	mov ax, 0
+	loop loopke23
+	
+	
 	mov	al, es:[__keyboardState][SCANCODE_Q]
 	cmp	al, 0
 	jz	checkspace
-	call endProgram
+	call endGame
 	checkspace:
 	mov	al, es:[__keyboardState][SCANCODE_SPACEBAR]
 	cmp	al, 0
-	je		@B
-	jmp @main_loop
+	jnz @main_loop
 	
+	; select level
+	cmp [SCORE], 0	; only switch between levels when new game
+	jne @B
+	checkpreviuoslevel:
+		mov	al, es:[__keyboardState][SCANCODE_LEFT]
+		cmp	al, 0
+		je checknextlevel
+		cmp 	[LEVEL], 1 ; if level 1 is selected then no previous
+		je checknextlevel
+		dec [LEVEL]
+		call newLevel
+	checknextlevel:
+		mov	al, es:[__keyboardState][SCANCODE_RIGHT]
+		cmp	al, 0
+		je	@B
+		mov	ax, [LEVEL]
+		cmp	ax, [nbrLEVELS]
+		je @B
+		inc [LEVEL]
+		call newLevel	
 
 start_over_decrement: 
   dec [MAXLIFE]
@@ -559,8 +672,7 @@ start_over_decrement:
 	mov	di, 0
 	mov	si, 0
 	detectBricksloop:
-		mov 	bx, [currentexBRICKS]
-		mov	al, [bx][di]
+		mov 	al, [currentexBRICKS][di]
 		cmp	al, 0
 		jz @F ; nextbrick
 		mov 	ax, 1
@@ -572,8 +684,7 @@ start_over_decrement:
 		push ax					; arg1 (x position)
 		call  brickDetection
 		pop	ax
-		mov 	bx, [currentexBRICKS]
-		mov	[bx][di], al 
+		mov	[currentexBRICKS][di], al 
 		@@:
 		inc 	di
 		add	si, 4
@@ -625,19 +736,29 @@ updateScreenBuffer PROC NEAR
 	mov	si, 0
 	mov 	dx, 0 ; teller om te tellen ofdat er nog wel bricks op het speelveld zijn
 	drawBricksloop:
-		mov 	bx, [currentexBRICKS]
-		mov	al, [bx][di]
+		mov	al, [currentexBRICKS][di]
 		cmp	al, 0
 		jz @F ; nextbrick
 		inc	dx
 		mov	ah, 0
 		mov	bx, [currentcolourBRICK]
-		mov	al, [bx][si]
+		mov	al, [bx][di]
 		push 	ax
 		mov 	bx, [currentposBRICK]
 		lea	ax, [bx][si]
 		push 	ax
 		call 	drawBrick
+	;	mov 	bx, [currentposBRICK]
+	;	mov	ax, [bx][si]
+	;	cmp 	ax, rlimit
+	;	jle	add1
+	;	mov ax, llimit
+	;	sub	ax, [BRICK][0]
+	;	jmp done1
+	;	add1:
+	;	add ax, 10
+	;	done1:
+	;	mov	[bx][si], ax
 		@@:
 		inc 	di
 		add	si, 4
@@ -1067,7 +1188,7 @@ handleInput PROC NEAR
 	mov	al, es:[__keyboardState][SCANCODE_Q]	; test ESC
 	cmp	al, 0
 	jz @done	; jump next
-	call endProgram
+	call endGame
 			
 	@done:
 	pop 	bx
@@ -1667,14 +1788,14 @@ endGame PROC NEAR
 	xor 	bh, bh 						; viode page 0
 	int 10h								; set cursor
 	mov	ah, 09h						; select function 09h (print string)
-	mov	dx, offset msgMenu2		; load offset address of msgMenu1 (press Q to quit)
+	mov	dx, offset msgExit		; load offset address of msgMenu1 (press esc to exit)
 	int	21h
 	
 	; wait for p to begin
   	mov	ax, seg __keysActive
   	mov	es, ax
 	@@:
-		mov	al, es:[__keyboardState][SCANCODE_Q]
+		mov	al, es:[__keyboardState][SCANCODE_ESC]
 		cmp	al, 0
 		jz	checkP
 		call endProgram
