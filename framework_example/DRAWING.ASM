@@ -269,7 +269,7 @@ colourBRICKs	dw offset colourBRICK1, offset colourBRICK2,  offset colourBRICK3
 currentcolourBRICK dw ?
 
 ; existence of bricks
-currentexBRICKS db ?
+currentexBRICKS db 100 dup(1)
 	
 ; BACKGROUND
 
@@ -518,6 +518,8 @@ main PROC NEAR
 	ret 0
 
 main ENDP
+
+; --- BEGIN GAME  ------------------------------------
 	
 newGame PROC NEAR
 	
@@ -532,7 +534,9 @@ newGame PROC NEAR
 	ret 0
 	
 newGame ENDP
-	
+
+; --- BEGIN LEVEL ------------------------------------
+
 newLevel PROC NEAR	
 	
 	push 	bp
@@ -546,10 +550,12 @@ newLevel PROC NEAR
 	
 	mov	ax, [LEVEL]
 	
+	; check maximum level reached
 	cmp	ax, [nbrLEVELS]
 	jle @F
 	call endGame
 	
+	; select levelarrays
 	@@:
 	sal 	ax, 1
 	sub	ax, 2 ; array starts at 0
@@ -616,7 +622,6 @@ start_over:
 	mov ax, 0
 	loop loopke23
 	
-	
 	mov	al, es:[__keyboardState][SCANCODE_Q]
 	cmp	al, 0
 	jz	checkspace
@@ -669,27 +674,7 @@ start_over_decrement:
 	push  ax
 	call printint
 	
-	mov	di, 0
-	mov	si, 0
-	detectBricksloop:
-		mov 	al, [currentexBRICKS][di]
-		cmp	al, 0
-		jz @F ; nextbrick
-		mov 	ax, 1
-		push 	ax			; make room for return value
-		mov 	bx, [currentposBRICK]
-		mov	ax, [bx + 2][si]
-		push ax					; arg2 (y position)
-		mov	ax, [bx][si]
-		push ax					; arg1 (x position)
-		call  brickDetection
-		pop	ax
-		mov	[currentexBRICKS][di], al 
-		@@:
-		inc 	di
-		add	si, 4
-		cmp 	di, [currentnbrBRICKS]
-		jnz	detectBricksloop
+	call bricksDetection
 	
 	call paddleDetection
 	
@@ -1468,6 +1453,53 @@ paddleDetection PROC NEAR
 	ret	0
 paddleDetection ENDP
 
+bricksDetection PROC NEAR
+; detecteert of er aanraking is met de object op stap + 1
+; return afstand tot de paddle en boven/onder of rechts/links
+
+	push	bp
+	mov	bp, sp
+	
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	
+	mov	di, 0	; arrayindex pointer
+	mov	si, 0	; brick counter
+	brickloop:
+	
+		; check brick visible 
+		mov 	al, [currentexBRICKS][di]
+		cmp	al, 0
+		jz @F ; nextbrick
+		mov 	ax, 1
+		push 	ax			; make room for return value
+		mov 	bx, [currentposBRICK]
+		mov	ax, [bx + 2][si]
+		push ax					; arg2 (y position)
+		mov	ax, [bx][si]
+		push ax					; arg1 (x position)
+		call  brickDetection
+		pop	ax
+		mov	[currentexBRICKS][di], al 
+		@@:
+		inc 	di
+		add	si, 4
+		cmp 	di, [currentnbrBRICKS]
+		jnz	brickloop
+		
+	; We are done
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	; return
+	pop	bp
+	ret	0
+
+bricksDetection ENDP
+
 brickDetection PROC NEAR
 ; detecteert of er aanraking is met de object op stap + 1
 ; return afstand tot de paddle en boven/onder of rechts/links
@@ -1479,8 +1511,6 @@ brickDetection PROC NEAR
 	push	bx
 	push	cx
 	push	dx
-	push	di
-	push	es
 	
 	xposBRICK equ [bp + 4]
 	yposBRICK equ [bp + 6]
@@ -1601,8 +1631,6 @@ deletebrick:
 
 brickDetection_done:
 	; We are done
-	pop	es
-	pop	di
 	pop	dx
 	pop	cx
 	pop	bx
@@ -1804,14 +1832,15 @@ endGame PROC NEAR
 		cmp	al, 0
 		je		@B
 	
-	call 	newGame
-	
 	pop	dx
 	pop	cx
 	pop	bx
 	pop	ax
 	
 	pop	bp
+	
+	call 	newGame
+	
 	ret 0
 	
 endGame ENDP
