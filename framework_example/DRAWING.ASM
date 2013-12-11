@@ -484,6 +484,15 @@ newLevel PROC NEAR
 	int 	10h
 	call 	printint
 	
+	mov ah, 02h
+	mov	dh, 1
+	mov	dl, 24 ; 0 --> 39 elementen
+	xor 	bh, bh 						; viode page 0
+	int 10h
+	mov	ax, [SCORE]
+	push  ax
+	call printint
+	
 	; restore all bricks
 	mov	si, 0
 	restoreloop:
@@ -782,15 +791,6 @@ drawBackground PROC NEAR
 	mov	ah, 09h						; select function 09h (print string)
 	mov	dx, offset msgScore		; load offset address of msgScore (highscore)
 	int	21h
-	
-	mov ah, 02h							; select function 02h (set cursor)
-	mov	dh, 1							; x position of cursor
-	mov	dl, 24						; y position of cursor
-	xor 	bh, bh 						; viode page 0
-	int 10h								; set cursor
-	mov	ax, [SCORE]
-	push  ax
-	call printint
 	
 	mov ah, 02h							; select function 02h (set cursor)
 	mov	dh, 1							; x position of cursor
