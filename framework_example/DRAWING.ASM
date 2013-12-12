@@ -37,7 +37,7 @@ msgMenu3 db "Press spacebar to begin$"
 msgExit db "Press ESC to exit$"
 SCORE		dw	0
 msgScore db "Score: $"
-msgHighscore db "Higscore: $"
+msgHighScore db "Highscore: $"
 msgLevels db "Level $"
 msgYScore db "Your Score: $"  
 
@@ -302,7 +302,7 @@ posHART 	word llimit+10, 180
 ; ------------------------------------------------------------
 ; LIFE DATA
 ; ------------------------------------------------------------
-LIFE dw 3
+LIFE dw 4
 MAXLIFE dw 3
 filename	db 'SCORE.TXT',0
 highscore	dw ?
@@ -318,24 +318,27 @@ adressColour dw ?
 ; ------------------------------------------------------------
 BRICK	word 15, 8	; x, y
 
-posBRICKS dw offset posBRICK1,  offset posBRICK2, offset posBRICK3
+posBRICKS dw offset posBRICK1,  offset posBRICK2, offset posBRICK3, offset posBRICK4, offset posBRICK5
 currentposBRICK dw ?
 
-nbrBRICKS dw nbrBRICKS1, nbrBRICKS2, nbrBRICKS1
+nbrBRICKS dw nbrBRICKS1, nbrBRICKS2, nbrBRICKS1, nbrBRICKS1, nbrBRICKS1
 currentnbrBRICKS dw ?
 								
-colourBRICKs dw offset colourBRICK1, offset colourBRICK2,  offset colourBRICK3
+colourBRICKs dw offset colourBRICK1, offset colourBRICK2,  offset colourBRICK3 , offset colourBRICK4, offset colourBRICK5
 currentcolourBRICK dw ?
 
-stateBRICKS dw offset stateBRICKS1, offset stateBRICKS2, offset stateBRICKS3
+stateBRICKS dw offset stateBRICKS1, offset stateBRICKS2, offset stateBRICKS3, offset stateBRICKS4, offset stateBRICKS5
 currentstateBRICKS dw ?
+
+
+moveBrickspeed dw 1 , 1 , 1 , 2 , 4
 
 currentvisBRICKS db 100 dup(1) ; visible bricks
 
 ; ------------------------------------------------------------
 ; LEVEL DATA
 ; ------------------------------------------------------------
-nbrLEVELS dw 3
+nbrLEVELS dw 5
 LEVEL	dw ?
 
 ; LEVEL 1
@@ -457,8 +460,8 @@ posBRICK2	word  llimit+10+0, ulimit+10+0 ; x, y
 nbrBRICKS2 equ 51
 
 colourBRICK2	byte 13,	7,	13, 12, 14,	15, 12, 6,  4,  11, 1,  12, 2, 8, 8, 2,  14	; row 1
-					byte 13, 6,	13, 2,  9,  14, 5,  11, 9,  4,  12, 3,  2, 5, 9, 14, 6	; row 2
-					byte 8,  10, 4, 8,  8,  1,  5,  13, 14, 6,  1,  4,  8, 4, 8, 6,  8	; row 3
+				byte 13, 6,	13, 2,  9,  14, 5,  11, 9,  4,  12, 3,  2, 5, 9, 14, 6	; row 2
+				byte 8,  10, 4, 8,  8,  1,  5,  13, 14, 6,  1,  4,  8, 4, 8, 6,  8	; row 3
 
 stateBRICKS2 db	nbrBRICKS2 dup(0) ; 0: static/ 1: move right/ 2: move left
 
@@ -525,7 +528,135 @@ colourBRICK3	byte 17 dup(5)		; row 1
 stateBRICKS3 	byte	17 dup(1) ; 0: static/ 1: move right/ 2: move left
 					byte 17 dup(2) ; 0: static/ 1: move right/ 2: move left
 					byte 17 dup(1) ; 0: static/ 1: move right/ 2: move left
+					
+					
+;Level 4
 	
+posbrick4	word  llimit+10+0, ulimit+10+0 ; x, y
+			word  llimit+10+17, ulimit+10+0 ; x, y
+			word  llimit+10+34, ulimit+10+0 ; x, y
+			word  llimit+10+51, ulimit+10+0 ; x, y
+			word  llimit+10+68, ulimit+10+0 ; x, y
+			word  llimit+10+85, ulimit+10+0 ; x, y
+			word  llimit+10+102, ulimit+10+0 ; x, y
+			word  llimit+10+119, ulimit+10+0 ; x, y
+			word  llimit+10+136, ulimit+10+0 ; x, y
+			word  llimit+10+153, ulimit+10+0 ; x, y
+			word  llimit+10+170, ulimit+10+0 ; x, y
+			word  llimit+10+187, ulimit+10+0 ; x, y
+			word  llimit+10+204, ulimit+10+0 ; x, y
+			word  llimit+10+221, ulimit+10+0 ; x, y
+			word  llimit+10+238, ulimit+10+0 ; x, y
+			word  llimit+10+255, ulimit+10+0 ; x, y
+			word  llimit+10+272, ulimit+10+0 ; x, y
+			word  llimit+10+0, ulimit+10+10 ; x, y
+			word  llimit+10+17, ulimit+10+10 ; x, y
+			word  llimit+10+34, ulimit+10+10 ; x, y
+			word  llimit+10+51, ulimit+10+10 ; x, y
+			word  llimit+10+68, ulimit+10+10 ; x, y
+			word  llimit+10+85, ulimit+10+10 ; x, y
+			word  llimit+10+102, ulimit+10+10 ; x, y
+			word  llimit+10+119, ulimit+10+10 ; x, y
+			word  llimit+10+136, ulimit+10+10 ; x, y
+			word  llimit+10+153, ulimit+10+10 ; x, y
+			word  llimit+10+170, ulimit+10+10 ; x, y
+			word  llimit+10+187, ulimit+10+10 ; x, y
+			word  llimit+10+204, ulimit+10+10 ; x, y
+			word  llimit+10+221, ulimit+10+10 ; x, y
+			word  llimit+10+238, ulimit+10+10 ; x, y
+			word  llimit+10+255, ulimit+10+10 ; x, y
+			word  llimit+10+272, ulimit+10+10 ; x, y
+			word  llimit+10+0, ulimit+10+20 ; x, y
+			word  llimit+10+17, ulimit+10+20 ; x, y
+			word  llimit+10+34, ulimit+10+20 ; x, y
+			word  llimit+10+51, ulimit+10+20 ; x, y
+			word  llimit+10+68, ulimit+10+20 ; x, y
+			word  llimit+10+85, ulimit+10+20 ; x, y
+			word  llimit+10+102, ulimit+10+20 ; x, y
+			word  llimit+10+119, ulimit+10+20 ; x, y
+			word  llimit+10+136, ulimit+10+20 ; x, y
+			word  llimit+10+153, ulimit+10+20 ; x, y
+			word  llimit+10+170, ulimit+10+20 ; x, y
+			word  llimit+10+187, ulimit+10+20 ; x, y
+			word  llimit+10+204, ulimit+10+20 ; x, y
+			word  llimit+10+221, ulimit+10+20 ; x, y
+			word  llimit+10+238, ulimit+10+20 ; x, y
+			word  llimit+10+255, ulimit+10+20 ; x, y
+			word  llimit+10+272, ulimit+10+20 ; x, y
+			
+nbrBRICKS4 equ 51
+
+colourBRICK4 	db nbrBRICKS4 dup(9)
+					
+					
+stateBRICKS4 	byte 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3  ; 0: static/ 1: move right/ 2: move left/ 3: move up/ 4: move down
+				byte 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3  ; 0: static/ 1: move right/ 2: move left/ 3: move up/ 4: move down
+				byte 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3, 4, 3  ; 0: static/ 1: move right/ 2: move left/ 3: move up/ 4: move down
+
+; LEVEL 5
+; -------------------------------------
+posBRICK5	word  llimit+10+0, ulimit+10+0 ; x, y
+			word  llimit+10+34, ulimit+10+0 ; x, y
+			word  llimit+10+68, ulimit+10+0 ; x, y
+			word  llimit+10+102, ulimit+10+0 ; x, y
+			word  llimit+10+136, ulimit+10+0 ; x, y
+			word  llimit+10+170, ulimit+10+0 ; x, y
+			word  llimit+10+204, ulimit+10+0 ; x, y
+			word  llimit+10+238, ulimit+10+0 ; x, y
+			word  llimit+10+272, ulimit+10+0 ; x, y
+			word  llimit+10+17, ulimit+10+10 ; x, y
+			word  llimit+10+51, ulimit+10+10 ; x, y
+			word  llimit+10+85, ulimit+10+10 ; x, y
+			word  llimit+10+119, ulimit+10+10 ; x, y
+			word  llimit+10+153, ulimit+10+10 ; x, y
+			word  llimit+10+187, ulimit+10+10 ; x, y
+			word  llimit+10+221, ulimit+10+10 ; x, y
+			word  llimit+10+255, ulimit+10+10 ; x, y
+			word  llimit+10+0, ulimit+10+20 ; x, y
+			word  llimit+10+34, ulimit+10+20 ; x, y
+			word  llimit+10+68, ulimit+10+20 ; x, y
+			word  llimit+10+102, ulimit+10+20 ; x, y
+			word  llimit+10+136, ulimit+10+20 ; x, y
+			word  llimit+10+170, ulimit+10+20 ; x, y
+			word  llimit+10+204, ulimit+10+20 ; x, y
+			word  llimit+10+238, ulimit+10+20 ; x, y
+			word  llimit+10+272, ulimit+10+20 ; x, y
+			word  llimit+10+17, ulimit+10+30 ; x, y
+			word  llimit+10+51, ulimit+10+30 ; x, y
+			word  llimit+10+85, ulimit+10+30 ; x, y
+			word  llimit+10+119, ulimit+10+30 ; x, y
+			word  llimit+10+153, ulimit+10+30 ; x, y
+			word  llimit+10+187, ulimit+10+30 ; x, y
+			word  llimit+10+221, ulimit+10+30 ; x, y
+			word  llimit+10+255, ulimit+10+30 ; x, y
+			word  llimit+10+0, ulimit+10+40 ; x, y
+			word  llimit+10+34, ulimit+10+40 ; x, y
+			word  llimit+10+68, ulimit+10+40 ; x, y
+			word  llimit+10+102, ulimit+10+40 ; x, y
+			word  llimit+10+136, ulimit+10+40 ; x, y
+			word  llimit+10+170, ulimit+10+40 ; x, y
+			word  llimit+10+204, ulimit+10+40 ; x, y
+			word  llimit+10+238, ulimit+10+40 ; x, y
+			word  llimit+10+272, ulimit+10+40 ; x, y
+			word  llimit+10+17, ulimit+10+50 ; x, y
+			word  llimit+10+51, ulimit+10+50 ; x, y
+			word  llimit+10+85, ulimit+10+50 ; x, y
+			word  llimit+10+119, ulimit+10+50 ; x, y
+			word  llimit+10+153, ulimit+10+50 ; x, y
+			word  llimit+10+187, ulimit+10+50 ; x, y
+			word  llimit+10+221, ulimit+10+50 ; x, y
+			word  llimit+10+255, ulimit+10+50 ; x, y
+
+nbrBRICKS5 equ 51
+
+colourBRICK5	byte 13,	7,	13, 12, 14,	15, 12, 6,  4,  11, 1,  12, 2, 8, 8, 2,  14	; row 1
+			     byte 13, 6,	13, 2,  9,  14, 5,  11, 9,  4,  12, 3,  2, 5, 9, 14, 6	; row 2
+				byte 8,  10, 4, 8,  8,  1,  5,  13, 14, 6,  1,  4,  8, 4, 8, 6,  8	; row 3
+
+stateBRICKS5 byte	17 dup(1) ; 0: static/ 1: move right/ 2: move left
+			byte	17 dup(2 ) ; 0: static/ 1: move right/ 2: move left
+			byte	17 dup(1) ; 0: static/ 1: move right/ 2: move left
+
 ; ------------------------------------------------------------
 ; BACKGROUND
 ; ------------------------------------------------------------
@@ -731,14 +862,7 @@ main PROC NEAR
 	call printArkanoid
 	
 	call updateScreen
-	mov ax,[highscore]
-	push ax
-	mov ah, 02h
-	mov dh, 0
-	mov dl, 9
-	xor bh,bh
-	int 10h
-	call printint
+
 	
 	; MENU
 	; -------------------------------------
@@ -980,7 +1104,7 @@ printScore PROC NEAR
 	
 	mov ah, 02h				; select function 09h (set cursor)
 	mov	dh, 1				; y position of cursor
-	mov	dl, 24			; x position of cursor
+	mov	dl, 17			; x position of cursor
 	xor 	bh, bh 			; viode page 0
 	int 10h					; set cursor
 	mov	ax, [SCORE]
@@ -1175,8 +1299,8 @@ drawBackground PROC NEAR
 	; Draw strings
 	mov ah, 02h							; select function 02h (set cursor)
 	mov	dh, 1							; y position of cursor
-	mov	dl, 17						; x position of cursor
-	xor 	bh, bh 						; viode page 0
+	mov	dl, 10						; x position of cursor
+	xor bh, bh 						; viode page 0
 	int 10h								; set cursor
 	mov	ah, 09h						; select function 09h (print string)
 	mov	dx, offset msgScore		; load offset address of msgScore (highscore)
@@ -1184,8 +1308,26 @@ drawBackground PROC NEAR
 	
 	mov ah, 02h							; select function 02h (set cursor)
 	mov	dh, 1							; y position of cursor
+	mov	dl, 22						; x position of cursor
+	xor bh, bh 						; viode page 0
+	int 10h								; set cursor
+	mov	ah, 09h						; select function 09h (print string)
+	mov	dx, offset msgHighScore		; load offset address of msgScore (highscore)
+	int	21h
+	
+	mov ah, 02h						; select function 09h (set cursor)
+	mov	dh, 1				; y position of cursor
+	mov	dl, 32			; x position of cursor
+	xor 	bh, bh 			; viode page 0
+	int 10h					; set cursor
+	mov	ax, [highscore]
+	push  ax
+	call printint
+	
+	mov ah, 02h							; select function 02h (set cursor)
+	mov	dh, 1							; y position of cursor
 	mov	dl, 1							; x position of cursor
-	xor 	bh, bh 						; viode page 0
+	xor bh, bh 						; viode page 0
 	int 10h								; set cursor
 	mov	ah, 09h						; select function 09h (print string)
 	mov	dx, offset msgLevels		; load offset address of msgScore (highscore)
@@ -1952,17 +2094,62 @@ moveBricks PROC NEAR
 	mov	cx, [currentnbrBRICKS]
 	mov 	bx, [currentstateBRICKS]
 	mov	si, 0										; array index number
-	@@:
-		xor ah, ah
+	xor ah, ah ;ah leegmaken
+	
+	moveloop:
 		mov	al, [bx][si]
 		cmp al, 0
 		je nextBrick
-		push bx ; save bx
-		push si
-		sal si, 1
-		sal si, 1
-		cmp al, 1 ; check witch direction
-		je moveright
+		
+		cmp al, 3
+		jge movevert
+		
+		;move horizontal
+		push ax
+		push si 
+		call moveBrickHorz
+		jmp nextBrick
+		
+		movevert:
+		push ax
+		push si 
+		call moveBrickVert
+		
+		nextBrick:
+		dec 	cx
+		inc 	si
+		cmp 	cx, 0
+		jnz	moveloop	
+		
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	ret	0
+
+moveBricks ENDP
+
+moveBrickHorz PROC NEAR
+			
+	push	bp
+	mov	bp, sp
+	
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push si
+	
+	mov si, [bp + 4]
+	mov ax, [bp + 6]
+	
+	
+	;si maal 4
+	sal si, 1
+	sal si, 1
+	
+			cmp al , 1
+			jne @F 
 		; move left
 			mov 	bx, [currentposBRICK]
 			mov	ax, [bx][si]
@@ -1973,11 +2160,17 @@ moveBricks PROC NEAR
 			mov 	ax, rlimit		; if crossed set to the other edge
 			jmp saveNewpos
 			add1:
-			dec ax
+			push si
+			mov si, [LEVEL]
+			dec si
+			sal si ,1
+			mov	dx, [moveBrickspeed][si]
+			sub ax, dx
+			pop si
 			jmp saveNewpos
 		
+		@@:	
 		; move right
-		moveright:
 			mov 	bx, [currentposBRICK]
 			mov	ax, [bx][si]
 			cmp 	ax, rlimit	; check if brick crossed edge
@@ -1986,24 +2179,106 @@ moveBricks PROC NEAR
 			sub	ax, [BRICK][0]
 			jmp saveNewpos
 			add2:
-			inc ax
+						push si
+			mov si, [LEVEL]
+			dec si
+			sal si, 1
+			mov	dx, [moveBrickspeed][si]
+			add ax, dx
+			pop si
+		
 		saveNewpos:
 		mov	[bx][si], ax
-		pop 	si
-		pop 	bx	; restore bx
-		nextBrick:
-		dec 	cx
-		inc 	si
-		cmp 	cx, 0
-		jnz	@B	
 		
+	; We are done
+	pop si
 	pop	dx
 	pop	cx
 	pop	bx
 	pop	ax
-	ret	0
+	
+	; return
+	pop	bp
+	ret	4
+	
+moveBrickHorz ENDP
 
-moveBricks ENDP
+
+moveBrickVert PROC NEAR
+			
+	push	bp
+	mov	bp, sp
+	
+
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push    si
+	
+	mov si, [bp + 4]
+	mov ax, [bp + 6]
+	
+	
+	;si maal 4
+	sal si, 1
+	sal si, 1
+	
+	cmp al , 3
+	jne @F 
+	; move up
+	mov 	bx, [currentposBRICK]
+	mov	ax, [bx + 2][si]
+	mov	dx, ax
+	add	dx, [BRICK][2]
+	cmp	dx, ulimit
+	jge add1
+	mov 	ax, blimit-120		; if crossed set to the other edge
+	jmp saveNewpos
+	add1:
+			push si
+			mov si, [LEVEL]
+			dec si
+			sal si, 1
+			mov	dx, [moveBrickspeed][si]
+			sub ax, dx
+			pop si
+	jmp saveNewpos
+	
+	@@:
+	; move down
+	mov 	bx, [currentposBRICK]
+	mov	ax, [bx + 2][si]
+	cmp 	ax, blimit-70	; check if brick crossed edge
+	jle add2
+	mov ax, ulimit		; if crossed set to the other edge
+	sub	ax, [BRICK][2]
+	jmp saveNewpos
+	add2:
+			push si
+			mov si, [LEVEL]
+			dec si
+			sal si, 1
+			mov	dx, [moveBrickspeed][si]
+			add ax, dx
+			pop si
+		
+	saveNewpos:
+		mov	[bx + 2][si], ax
+		
+	; We are done
+	pop si
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+
+	; return
+	pop	bp
+	ret	4
+	
+moveBrickVert ENDP
+	
 
 ; --- DRAWING -------------------------------------
 ; Draw a rectangle at the center of the screen buffer.
