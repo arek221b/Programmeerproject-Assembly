@@ -38,7 +38,6 @@ msgExit db "Press ESC to exit$"
 SCORE		dw	0
 msgScore db "Score: $"
 msgHighscore db "Higscore: $"
-;HIGHSCORE dw ?
 msgLevels db "Level $"
 msgYScore db "Your Score: $"  
 
@@ -305,6 +304,8 @@ posHART 	word llimit+10, 180
 ; ------------------------------------------------------------
 LIFE dw 3
 MAXLIFE dw 3
+filename	db 'SCORE.TXT',0
+highscore	dw ?
 
 ; ------------------------------------------------------------
 ; OBJECT DATA
@@ -725,10 +726,19 @@ main PROC NEAR
 	push	ax
 	call	setVideoMode
 	mov		[oldVideoMode], al
+	call SetHighscore
 	
 	call printArkanoid
 	
 	call updateScreen
+	mov ax,[highscore]
+	push ax
+	mov ah, 02h
+	mov dh, 0
+	mov dl, 9
+	xor bh,bh
+	int 10h
+	call printint
 	
 	; MENU
 	; -------------------------------------
@@ -2134,6 +2144,9 @@ endGame PROC NEAR
 	push	cx
 	push	dx
 	
+	;Checken van de Highscore
+	call SaveHighscore
+	
  	call clearScreenBuffer
  	call updateScreen
 	
@@ -2417,6 +2430,7 @@ printArkanoid PROC NEAR
 		cmp cx, 0
 		jne MENUbarloop
 	
+
 	pop	cx
 	pop 	ax
 	ret 0
@@ -2452,5 +2466,156 @@ beep PROC NEAR
 	ret
 beep ENDP
 
-; _------------------------------- END OF CODE ---------------------------------
+
+
+
+SaveHighscore PROC NEAR
+
+; code
+	push	bp	; save dynamic link
+	mov	bp, sp	; update bp
+	; save context on stack
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	si	
+
+	; open file
+	mov	ax,3d00h
+	lea	dx,[filename]
+	int	21h
+	jnc @F     ;als de carry niet gezet is dan kan men voort gaan met het lezen van de file
+	
+;anders moet men de highscore gewoon op nul initializeren 
+	mov ax , [SCORE]
+	mov [highscore], ax
+	jmp @@save
+	
+
+
+
+@@:
+	mov bx, ax ; put handle in BX
+
+	; read from file
+	mov	ah,3fh
+	mov	cx,2
+	lea	dx,[highscore]
+	int	21h
+	jnc  @F
+	
+	
+	;min highscore gewoon megeven zodanig score zowiezo wordt weggeschreven
+	
+	mov highscore,0
+
+
+@@:
+;compare de 2 scores
+
+mov ax, [SCORE]  ;we halen de behaalde score van de stack 
+cmp ax, [highscore]
+jle done
+
+mov [highscore], ax
+@@save:
+	;file open for writing
+	mov	ax,3d01h
+	lea	dx,[filename]
+	int	21h
+	jnc @F
+
+  ; try to create the file
+	mov ah, 3ch
+	mov cl, 0
+	lea dx, [filename]
+	int 21h
+	jc done ; error occured
+	
+@@:
+	mov	bx, ax ; put handle in BX
+
+	; write score to file
+	mov	ah,40h
+	mov	cx,2
+	lea	dx,[highscore]
+	int	21h
+
+	; close file
+	mov	ah,3eh
+	int	21h
+
+	done:
+	; restore context (reverse pop the registers)
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	; restore sp and bp
+	mov	sp, bp
+	pop	bp
+	ret
+	
+SaveHighscore ENDP
+
+
+SetHighscore PROC NEAR
+
+	push	bp	; save dynamic link
+	mov	bp, sp	; update bp
+	; save context on stack
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	si	
+	
+; open file
+	mov	ax,3d00h
+	lea	dx,[filename]
+	int	21h
+	jnc read    ;als de carry niet gezet is dan kan men voort gaan met het lezen van de file
+	
+;anders moet men de highscore gewoon op nul initializeren
+	mov [highscore], 0
+	
+	
+	; try to create the file
+	mov ah, 3ch
+	mov cl, 0
+	lea dx, [filename]
+	int 21h
+	jmp done
+	
+	
+	read:
+	mov bx, ax ; put handle in BX
+
+	; read from file
+	mov	ah,3fh
+	mov	cx,2
+	lea	dx,[highscore]
+	int	21h
+	
+	done:
+	
+	; restore context (reverse pop the registers)
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	; restore sp and bp
+	mov	sp, bp
+	pop	bp
+	ret
+	
+	SetHighscore ENDP
+	
+	
+
+
+; ------------------------------- END OF CODE ---------------------------------
 END main
