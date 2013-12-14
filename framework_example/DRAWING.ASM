@@ -7,698 +7,7 @@
 
 include VIDEO.INC
 include KEYB.INC
-
-; ==============================================================================
-; SCREEN CONSTANTS
-; ==============================================================================
-
-SCREENW		equ 320
-SCREENH		equ 200
-
-rlimit	equ SCREENW-8	; right screen limit
-llimit	equ 0+8	; left screen limit
-ulimit	equ 35	; upper screen limit
-blimit	equ 200	; buttom screen limit
-
-
-; ==============================================================================
-; DATA
-; ==============================================================================
-.DATA        ; data segment, variables
-oldVideoMode	db ?
-
-; ------------------------------------------------------------
-; MENU DATA
-; ------------------------------------------------------------
-msgMenu1 db "Press P to play$"
-msgNewgame db "Press P to start a new game$"
-msgMenu2 db "Press Q to quit$"
-msgMenu3 db "Press spacebar to begin$"  
-msgExit db "Press ESC to exit$"
-SCORE		dw	0
-msgScore db "Score: $"
-msgHighscore db "Higscore: $"
-;HIGHSCORE dw ?
-msgLevels db "Level $"
-msgYScore db "Your Score: $"  
-
-characterA 	word 28, 22
-				byte 12 dup(0), 4 dup(1),  12 dup(0)
-				byte 11 dup(0), 6 dup(1), 11 dup(0)
-				byte 11 dup(0), 6 dup(1), 11 dup(0)
-				byte 10 dup(0), 3 dup(1), 0, 4 dup(1), 10 dup(0)
-				byte 10 dup(0), 3 dup(1), 2 dup(0), 3 dup(1), 10 dup(0)
-				byte 9 dup(0), 3 dup(1), 3 dup(0), 4 dup(1), 9 dup(0)
-				byte 8 dup(0), 4 dup(1), 4 dup(0), 3 dup(1), 9 dup(0) 
-				byte 8 dup(0), 3 dup(1), 5 dup(0), 4 dup(1), 8 dup(0) 
-				byte 7 dup(0), 4 dup(1), 6 dup(0), 4 dup(1), 7 dup(0) 
-				byte 7 dup(0), 3 dup(1), 7 dup(0), 4 dup(1), 7 dup(0) 
-				byte 6 dup(0), 4 dup(1), 8 dup(0), 4 dup(1), 6 dup(0) 
-				byte 6 dup(0), 3 dup(1), 9 dup(0), 4 dup(1), 6 dup(0) 
-				byte 5 dup(0), 4 dup(1), 10 dup(0), 4 dup(1), 5 dup(0) 
-				byte 5 dup(0), 3 dup(1), 11 dup(0), 4 dup(1), 5 dup(0) 
-				byte 4 dup(0), 20 dup(1), 4 dup(0) 
-				byte 4 dup(0), 20 dup(1), 4 dup(0) 
-				byte 3 dup(0), 22 dup(1), 3 dup(0) 
-				byte 2 dup(0), 4 dup(1), 15 dup(0), 5 dup(1), 2 dup(0) 
-				byte 2 dup(0), 4 dup(1), 16 dup(0), 4 dup(1), 2 dup(0) 
-				byte 1 dup(0), 4 dup(1), 18 dup(0), 4 dup(1), 1 dup(0) 
-				byte 1 dup(0), 3 dup(1), 19 dup(0), 4 dup(1), 1 dup(0) 
-				byte 4 dup(1), 20 dup(0), 4 dup(1)		
-SIZEOFcharacterA	equ $-characterA 
-
-characterAcolour	db SIZEOFcharacterA dup(15)	
-poscharacterA dw 51, 48
-
-characterR 	word 20, 18
-				byte 17 dup(1), 3 dup(0)
-				byte 18 dup(1), 2 dup(0)
-				byte 18 dup(1), 2 dup(0)
-				byte 3 dup(1), 12 dup(0), 3 dup(1), 2 dup(0)
-				byte 3 dup(1), 12 dup(0), 3 dup(1), 2 dup(0)
-				byte 3 dup(1), 12 dup(0), 3 dup(1), 2 dup(0)
-				byte 3 dup(1), 12 dup(0), 3 dup(1), 2 dup(0)
-				byte 3 dup(1), 12 dup(0), 3 dup(1), 2 dup(0)
-				byte 18 dup(1), 2 dup(0)
-				byte 18 dup(1), 2 dup(0)
-				byte 17 dup(1), 3 dup(0)
-				byte 3 dup(1), 6 dup(0), 3 dup(1), 8 dup(0)
-				byte 3 dup(1), 7 dup(0), 4 dup(1), 6 dup(0)
-				byte 3 dup(1), 8 dup(0), 4 dup(1), 5 dup(0)
-				byte 3 dup(1), 9 dup(0), 4 dup(1), 4 dup(0)
-				byte 3 dup(1), 10 dup(0), 4 dup(1), 3 dup(0)
-				byte 3 dup(1), 11 dup(0), 4 dup(1), 2 dup(0)
-				byte 3 dup(1), 12 dup(0), 5 dup(1)
-SIZEOFcharacterR	equ $-characterR 
-
-characterRcolour	db SIZEOFcharacterR dup(15)	
-poscharacterR dw 51+28+4, 48+4
-
-characterK 	word 21, 18
-				byte 3 dup(1), 11 dup(0), 5 dup(1), 2 dup(0)
-				byte 3 dup(1), 9 dup(0), 5 dup(1), 4 dup(0)
-				byte 3 dup(1), 8 dup(0), 5 dup(1), 5 dup(0)
-				byte 3 dup(1), 6 dup(0), 5 dup(1), 7 dup(0)
-				byte 3 dup(1), 5 dup(0), 5 dup(1), 8 dup(0)
-				byte 3 dup(1), 3 dup(0), 5 dup(1), 10 dup(0)
-				byte 3 dup(1), 2 dup(0), 4 dup(1), 12 dup(0)
-				byte 3 dup(1), 1 dup(0), 4 dup(1), 13 dup(0)
-				byte 6 dup(1), 15 dup(0)
-				byte 7 dup(1), 14 dup(0)
-				byte 3 dup(1), 1 dup(0), 4 dup(1), 13 dup(0)
-				byte 3 dup(1), 2 dup(0), 4 dup(1), 12 dup(0)
-				byte 3 dup(1), 3 dup(0), 5 dup(1), 10 dup(0)
-				byte 3 dup(1), 5 dup(0), 5 dup(1), 8 dup(0)
-				byte 3 dup(1), 6 dup(0), 5 dup(1), 7 dup(0)
-				byte 3 dup(1), 8 dup(0), 5 dup(1), 5 dup(0)
-				byte 3 dup(1), 9 dup(0), 5 dup(1), 4 dup(0)
-				byte 3 dup(1), 11 dup(0), 7 dup(1)
-SIZEOFcharacterK	equ $-characterK 
-
-characterKcolour	db SIZEOFcharacterK dup(15)	
-poscharacterK dw 51+28+4+21+6, 48+4
-
-characterAs	word 24, 18
-				byte 10 dup(0), 4 dup(1),  10 dup(0)
-				byte 9 dup(0), 5 dup(1), 10 dup(0)
-				byte 9 dup(0), 6 dup(1),  9 dup(0)
-				byte 8 dup(0), 3 dup(1), 0, 3 dup(1), 9 dup(0)
-				byte 8 dup(0), 3 dup(1), 2 dup(0), 3 dup(1), 8 dup(0)
-				byte 7 dup(0), 3 dup(1), 3 dup(0), 4 dup(1), 7 dup(0)
-				byte 7 dup(0), 3 dup(1), 4 dup(0), 3 dup(1), 7 dup(0)
-				byte 6 dup(0), 3 dup(1), 5 dup(0), 4 dup(1), 6 dup(0)
-				byte 5 dup(0), 3 dup(1), 7 dup(0), 3 dup(1), 6 dup(0)
-				byte 5 dup(0), 3 dup(1), 8 dup(0), 3 dup(1), 5 dup(0)
-				byte 4 dup(0), 3 dup(1), 9 dup(0), 4 dup(1), 4 dup(0)
-				byte 4 dup(0), 16 dup(1), 4 dup(0)
-				byte 3 dup(0), 18 dup(1), 3 dup(0)
-				byte 3 dup(0), 18 dup(1), 3 dup(0)
-				byte 2 dup(0), 3 dup(1), 13 dup(0), 4 dup(1), 2 dup(0)
-				byte 1 dup(0), 4 dup(1), 14 dup(0), 4 dup(1), 1 dup(0)
-				byte 1 dup(0), 3 dup(1), 15 dup(0), 4 dup(1), 1 dup(0)
-				byte 4 dup(1), 16 dup(0), 4 dup(1)
-SIZEOFcharacterAs	equ $-characterAs 
-
-characterAscolour	db SIZEOFcharacterAs dup(15)	
-poscharacterAs dw 51+28+4+21+6+21+1, 48+4
-
-characterN	word 21, 18
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 4 dup(1), 14 dup(0), 3 dup(1)
-				byte 5 dup(1), 13 dup(0), 3 dup(1)
-				byte 7 dup(1), 11 dup(0), 3 dup(1)
-				byte 3 dup(1), 0, 4 dup(1), 10 dup(0), 3 dup(1)
-				byte 3 dup(1), 2 dup(0), 4 dup(1), 9 dup(0), 3 dup(1)
-				byte 3 dup(1), 3 dup(0), 4 dup(1), 8 dup(0), 3 dup(1)
-				byte 3 dup(1), 4 dup(0), 4 dup(1), 7 dup(0), 3 dup(1)
-				byte 3 dup(1), 5 dup(0), 4 dup(1), 6 dup(0), 3 dup(1)
-				byte 3 dup(1), 6 dup(0), 4 dup(1), 5 dup(0), 3 dup(1)
-				byte 3 dup(1), 7 dup(0), 4 dup(1), 4 dup(0), 3 dup(1)
-				byte 3 dup(1), 8 dup(0), 5 dup(1), 2 dup(0), 3 dup(1)
-				byte 3 dup(1), 9 dup(0), 5 dup(1), 1 dup(0), 3 dup(1)
-				byte 3 dup(1), 11 dup(0), 3 dup(1), 1 dup(0), 3 dup(1)
-				byte 3 dup(1), 12 dup(0), 6 dup(1)
-				byte 3 dup(1), 13 dup(0), 5 dup(1)
-				byte 3 dup(1), 14 dup(0), 4 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-SIZEOFcharacterN	equ $-characterN 
-
-characterNcolour	db SIZEOFcharacterN dup(15)	
-poscharacterN dw 51+28+4+21+6+21+1+24+6, 48+4
-
-characterO	word 21, 18
-				byte 0, 19 dup(1), 0
-				byte 21 dup(1)
-				byte 21 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 21 dup(1)
-				byte 21 dup(1)
-				byte 0, 19 dup(1), 0
-SIZEOFcharacterO	equ $-characterO 
-
-characterOcolour	db SIZEOFcharacterO dup(15)	
-poscharacterO dw 51+28+4+21+6+21+1+24+6+21+8, 48+4
-
-characterI	word 3, 18
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-				byte 3 dup(1)
-SIZEOFcharacterI	equ $-characterI 
-
-characterIcolour	db SIZEOFcharacterI dup(15)	
-poscharacterI dw 51+28+4+21+6+21+1+24+6+21+8+21+8, 48+4
-
-characterD	word 21, 18
-				byte 15 dup(1), 6 dup(0)
-				byte 17 dup(1), 4 dup(0)
-				byte 19 dup(1), 2 dup(0)
-				byte 3 dup(1), 11 dup(0), 5 dup(1), 2 dup(0)
-				byte 3 dup(1), 13 dup(0), 4 dup(1), 1 dup(0)
-				byte 3 dup(1), 14 dup(0), 3 dup(1), 1 dup(0)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 15 dup(0), 3 dup(1)
-				byte 3 dup(1), 14 dup(0), 3 dup(1), 1 dup(0)
-				byte 3 dup(1), 13 dup(0), 4 dup(1), 1 dup(0)
-				byte 3 dup(1), 11 dup(0), 5 dup(1), 2 dup(0)
-				byte 19 dup(1), 2 dup(0)
-				byte 17 dup(1), 4 dup(0)
-				byte 15 dup(1), 6 dup(0)
-SIZEOFcharacterD	equ $-characterD 
-
-characterDcolour	db SIZEOFcharacterD dup(15)	
-poscharacterD dw 51+28+4+21+6+21+1+24+6+21+8+21+8+3+10, 48+4
-
-MENUbar dw SCREENW, 4
-posMENUbar dw 0, 26
-
-
-; ------------------------------------------------------------
-; BAR DATA
-; ------------------------------------------------------------
-BAR	word 30 , 3			;	width / height
-		byte 30 dup(1)
-		byte 30 dup(1)
-		byte 30 dup(1)
-SIZEOFbar	equ $-BAR
-
-BARcolour	db SIZEOFbar dup(15)		
-
-iposBARx equ 150	; intiële bar position
-posBAR 	dw iposBARx, 170
-speedBAR	equ 12
-
-
-; ------------------------------------------------------------
-; BALL DATA
-; ------------------------------------------------------------
-BALL	word 6,6	;x/y
-		byte 0,0,1,1,0,0 
-		byte 0,1,1,1,1,0
-		byte 1,1,1,1,1,1
-		byte 1,1,1,1,1,1
-		byte 0,1,1,1,1,0
-		byte 0,0,1,1,0,0
-SIZEOFball	equ $-BALL
-
-BALLcolour	db SIZEOFball dup(15)
-posBALL 		dw 2 dup(?) ;pos x en y
-speedBALL 	dw 2 dup(?)
-speedBALLinit	dw 3, -3 
-abs2speedBALL1 dw 50
-
-abs2speedBALL dw 18
-newspeedBaLL 	db -4, -4, -4, -4, -3, -3, -3, -3, -2, -2, -2, -2, -1, -1, -1, -1, -0, -0
-					db 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4	
-					
-detected dw 0
-
-; ------------------------------------------------------------
-; HARTS DATA
-; ------------------------------------------------------------
-HART	word 8, 7
-		byte 0,1,1,0,0,1,1,0
-		byte 8 dup(1)
-		byte 8 dup(1)
-		byte 8 dup(1)
-		byte 0,1,1,1,1,1,1,0
-		byte 0,0,1,1,1,1,0,0
-		byte 0,0,0,1,1,0,0,0
-SIZEOFhart	equ $-HART
-
-HARTcolour	db SIZEOFhart dup(4)
-posHART 	word llimit+10, 180
-			word llimit+20, 180 
-			word llimit+30, 180
-			
-; ------------------------------------------------------------
-; LIFE DATA
-; ------------------------------------------------------------
-LIFE dw 3
-MAXLIFE dw 3
-
-; ------------------------------------------------------------
-; OBJECT DATA
-; ------------------------------------------------------------
-adressObject dw ?
-adressColour dw ?
-
-; ------------------------------------------------------------
-; BRICK DATA
-; ------------------------------------------------------------
-BRICK	word 15, 8	; x, y
-
-posBRICKS dw offset posBRICK1,  offset posBRICK2, offset posBRICK3
-currentposBRICK dw ?
-
-nbrBRICKS dw nbrBRICKS1, nbrBRICKS2, nbrBRICKS1
-currentnbrBRICKS dw ?
-								
-colourBRICKs dw offset colourBRICK1, offset colourBRICK2,  offset colourBRICK3
-currentcolourBRICK dw ?
-
-stateBRICKS dw offset stateBRICKS1, offset stateBRICKS2, offset stateBRICKS3
-currentstateBRICKS dw ?
-
-currentvisBRICKS db 100 dup(1) ; visible bricks
-
-; ------------------------------------------------------------
-; LEVEL DATA
-; ------------------------------------------------------------
-nbrLEVELS dw 3
-LEVEL	dw ?
-
-; LEVEL 1
-; -------------------------------------
-posBRICK1	word  llimit+10+0, ulimit+10+0 ; x, y
-			word  llimit+10+17, ulimit+10+0 ; x, y
-			word  llimit+10+34, ulimit+10+0 ; x, y
-			word  llimit+10+51, ulimit+10+0 ; x, y
-			word  llimit+10+68, ulimit+10+0 ; x, y
-			word  llimit+10+85, ulimit+10+0 ; x, y
-			word  llimit+10+102, ulimit+10+0 ; x, y
-			word  llimit+10+119, ulimit+10+0 ; x, y
-			word  llimit+10+136, ulimit+10+0 ; x, y
-			word  llimit+10+153, ulimit+10+0 ; x, y
-			word  llimit+10+170, ulimit+10+0 ; x, y
-			word  llimit+10+187, ulimit+10+0 ; x, y
-			word  llimit+10+204, ulimit+10+0 ; x, y
-			word  llimit+10+221, ulimit+10+0 ; x, y
-			word  llimit+10+238, ulimit+10+0 ; x, y
-			word  llimit+10+255, ulimit+10+0 ; x, y
-			word  llimit+10+272, ulimit+10+0 ; x, y
-			word  llimit+10+0, ulimit+10+10 ; x, y
-			word  llimit+10+17, ulimit+10+10 ; x, y
-			word  llimit+10+34, ulimit+10+10 ; x, y
-			word  llimit+10+51, ulimit+10+10 ; x, y
-			word  llimit+10+68, ulimit+10+10 ; x, y
-			word  llimit+10+85, ulimit+10+10 ; x, y
-			word  llimit+10+102, ulimit+10+10 ; x, y
-			word  llimit+10+119, ulimit+10+10 ; x, y
-			word  llimit+10+136, ulimit+10+10 ; x, y
-			word  llimit+10+153, ulimit+10+10 ; x, y
-			word  llimit+10+170, ulimit+10+10 ; x, y
-			word  llimit+10+187, ulimit+10+10 ; x, y
-			word  llimit+10+204, ulimit+10+10 ; x, y
-			word  llimit+10+221, ulimit+10+10 ; x, y
-			word  llimit+10+238, ulimit+10+10 ; x, y
-			word  llimit+10+255, ulimit+10+10 ; x, y
-			word  llimit+10+272, ulimit+10+10 ; x, y
-			word  llimit+10+0, ulimit+10+20 ; x, y
-			word  llimit+10+17, ulimit+10+20 ; x, y
-			word  llimit+10+34, ulimit+10+20 ; x, y
-			word  llimit+10+51, ulimit+10+20 ; x, y
-			word  llimit+10+68, ulimit+10+20 ; x, y
-			word  llimit+10+85, ulimit+10+20 ; x, y
-			word  llimit+10+102, ulimit+10+20 ; x, y
-			word  llimit+10+119, ulimit+10+20 ; x, y
-			word  llimit+10+136, ulimit+10+20 ; x, y
-			word  llimit+10+153, ulimit+10+20 ; x, y
-			word  llimit+10+170, ulimit+10+20 ; x, y
-			word  llimit+10+187, ulimit+10+20 ; x, y
-			word  llimit+10+204, ulimit+10+20 ; x, y
-			word  llimit+10+221, ulimit+10+20 ; x, y
-			word  llimit+10+238, ulimit+10+20 ; x, y
-			word  llimit+10+255, ulimit+10+20 ; x, y
-			word  llimit+10+272, ulimit+10+20 ; x, y
-			
-nbrBRICKS1 equ 51
-
-colourBRICK1 	byte 17 dup(12)	; row 1
-					byte 17 dup(2)		; row 2
-					byte 17 dup(5)		; row 3
-
-stateBRICKS1 db	nbrBRICKS1 dup(0) ; 0: static/ 1: move right/ 2: move left
-
-; LEVEL 2
-; -------------------------------------
-posBRICK2	word  llimit+10+0, ulimit+10+0 ; x, y
-			word  llimit+10+34, ulimit+10+0 ; x, y
-			word  llimit+10+68, ulimit+10+0 ; x, y
-			word  llimit+10+102, ulimit+10+0 ; x, y
-			word  llimit+10+136, ulimit+10+0 ; x, y
-			word  llimit+10+170, ulimit+10+0 ; x, y
-			word  llimit+10+204, ulimit+10+0 ; x, y
-			word  llimit+10+238, ulimit+10+0 ; x, y
-			word  llimit+10+272, ulimit+10+0 ; x, y
-			word  llimit+10+17, ulimit+10+10 ; x, y
-			word  llimit+10+51, ulimit+10+10 ; x, y
-			word  llimit+10+85, ulimit+10+10 ; x, y
-			word  llimit+10+119, ulimit+10+10 ; x, y
-			word  llimit+10+153, ulimit+10+10 ; x, y
-			word  llimit+10+187, ulimit+10+10 ; x, y
-			word  llimit+10+221, ulimit+10+10 ; x, y
-			word  llimit+10+255, ulimit+10+10 ; x, y
-			word  llimit+10+0, ulimit+10+20 ; x, y
-			word  llimit+10+34, ulimit+10+20 ; x, y
-			word  llimit+10+68, ulimit+10+20 ; x, y
-			word  llimit+10+102, ulimit+10+20 ; x, y
-			word  llimit+10+136, ulimit+10+20 ; x, y
-			word  llimit+10+170, ulimit+10+20 ; x, y
-			word  llimit+10+204, ulimit+10+20 ; x, y
-			word  llimit+10+238, ulimit+10+20 ; x, y
-			word  llimit+10+272, ulimit+10+20 ; x, y
-			word  llimit+10+17, ulimit+10+30 ; x, y
-			word  llimit+10+51, ulimit+10+30 ; x, y
-			word  llimit+10+85, ulimit+10+30 ; x, y
-			word  llimit+10+119, ulimit+10+30 ; x, y
-			word  llimit+10+153, ulimit+10+30 ; x, y
-			word  llimit+10+187, ulimit+10+30 ; x, y
-			word  llimit+10+221, ulimit+10+30 ; x, y
-			word  llimit+10+255, ulimit+10+30 ; x, y
-			word  llimit+10+0, ulimit+10+40 ; x, y
-			word  llimit+10+34, ulimit+10+40 ; x, y
-			word  llimit+10+68, ulimit+10+40 ; x, y
-			word  llimit+10+102, ulimit+10+40 ; x, y
-			word  llimit+10+136, ulimit+10+40 ; x, y
-			word  llimit+10+170, ulimit+10+40 ; x, y
-			word  llimit+10+204, ulimit+10+40 ; x, y
-			word  llimit+10+238, ulimit+10+40 ; x, y
-			word  llimit+10+272, ulimit+10+40 ; x, y
-			word  llimit+10+17, ulimit+10+50 ; x, y
-			word  llimit+10+51, ulimit+10+50 ; x, y
-			word  llimit+10+85, ulimit+10+50 ; x, y
-			word  llimit+10+119, ulimit+10+50 ; x, y
-			word  llimit+10+153, ulimit+10+50 ; x, y
-			word  llimit+10+187, ulimit+10+50 ; x, y
-			word  llimit+10+221, ulimit+10+50 ; x, y
-			word  llimit+10+255, ulimit+10+50 ; x, y
-
-nbrBRICKS2 equ 51
-
-colourBRICK2	byte 13,	7,	13, 12, 14,	15, 12, 6,  4,  11, 1,  12, 2, 8, 8, 2,  14	; row 1
-					byte 13, 6,	13, 2,  9,  14, 5,  11, 9,  4,  12, 3,  2, 5, 9, 14, 6	; row 2
-					byte 8,  10, 4, 8,  8,  1,  5,  13, 14, 6,  1,  4,  8, 4, 8, 6,  8	; row 3
-
-stateBRICKS2 db	nbrBRICKS2 dup(0) ; 0: static/ 1: move right/ 2: move left
-
-; LEVEL 3
-; -------------------------------------
-posBRICK3	word  llimit+10+0, ulimit+10+0 ; x, y
-			word  llimit+10+17, ulimit+10+0 ; x, y
-			word  llimit+10+34, ulimit+10+0 ; x, y
-			word  llimit+10+51, ulimit+10+0 ; x, y
-			word  llimit+10+68, ulimit+10+0 ; x, y
-			word  llimit+10+85, ulimit+10+0 ; x, y
-			word  llimit+10+102, ulimit+10+0 ; x, y
-			word  llimit+10+119, ulimit+10+0 ; x, y
-			word  llimit+10+136, ulimit+10+0 ; x, y
-			word  llimit+10+153, ulimit+10+0 ; x, y
-			word  llimit+10+170, ulimit+10+0 ; x, y
-			word  llimit+10+187, ulimit+10+0 ; x, y
-			word  llimit+10+204, ulimit+10+0 ; x, y
-			word  llimit+10+221, ulimit+10+0 ; x, y
-			word  llimit+10+238, ulimit+10+0 ; x, y
-			word  llimit+10+255, ulimit+10+0 ; x, y
-			word  llimit+10+272, ulimit+10+0 ; x, y
-			word  llimit+10+0, ulimit+10+20 ; x, y
-			word  llimit+10+17, ulimit+10+20 ; x, y
-			word  llimit+10+34, ulimit+10+20 ; x, y
-			word  llimit+10+51, ulimit+10+20 ; x, y
-			word  llimit+10+68, ulimit+10+20 ; x, y
-			word  llimit+10+85, ulimit+10+20 ; x, y
-			word  llimit+10+102, ulimit+10+20 ; x, y
-			word  llimit+10+119, ulimit+10+20 ; x, y
-			word  llimit+10+136, ulimit+10+20 ; x, y
-			word  llimit+10+153, ulimit+10+20 ; x, y
-			word  llimit+10+170, ulimit+10+20 ; x, y
-			word  llimit+10+187, ulimit+10+20 ; x, y
-			word  llimit+10+204, ulimit+10+20 ; x, y
-			word  llimit+10+221, ulimit+10+20 ; x, y
-			word  llimit+10+238, ulimit+10+20 ; x, y
-			word  llimit+10+255, ulimit+10+20 ; x, y
-			word  llimit+10+272, ulimit+10+20 ; x, y
-			word  llimit+10+0, ulimit+10+40 ; x, y
-			word  llimit+10+17, ulimit+10+40 ; x, y
-			word  llimit+10+34, ulimit+10+40 ; x, y
-			word  llimit+10+51, ulimit+10+40 ; x, y
-			word  llimit+10+68, ulimit+10+40 ; x, y
-			word  llimit+10+85, ulimit+10+40 ; x, y
-			word  llimit+10+102, ulimit+10+40 ; x, y
-			word  llimit+10+119, ulimit+10+40 ; x, y
-			word  llimit+10+136, ulimit+10+40 ; x, y
-			word  llimit+10+153, ulimit+10+40 ; x, y
-			word  llimit+10+170, ulimit+10+40 ; x, y
-			word  llimit+10+187, ulimit+10+40 ; x, y
-			word  llimit+10+204, ulimit+10+40 ; x, y
-			word  llimit+10+221, ulimit+10+40 ; x, y
-			word  llimit+10+238, ulimit+10+40 ; x, y
-			word  llimit+10+255, ulimit+10+40 ; x, y
-			word  llimit+10+272, ulimit+10+40 ; x, y
-
-nbrBRICKS3 dw 51
-
-colourBRICK3	byte 17 dup(5)		; row 1
-					byte 17 dup(9)		; row 2
-					byte 17 dup(13)	; row 3
-	
-stateBRICKS3 	byte	17 dup(1) ; 0: static/ 1: move right/ 2: move left
-					byte 17 dup(2) ; 0: static/ 1: move right/ 2: move left
-					byte 17 dup(1) ; 0: static/ 1: move right/ 2: move left
-	
-; ------------------------------------------------------------
-; BACKGROUND
-; ------------------------------------------------------------
-
-backgrColour equ 0
-
-; TUBES
-; -------------------------------------
-TUBE1		word 8, 27
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			byte 0, 6 dup(1), 0
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 8 dup(1)
-			byte 0, 6 dup(1), 0
-			byte 2 dup(0), 4 dup(6), 2 dup(0)
-
-TUBE1colour	byte 4 dup(0);maakt niet uit
-				byte 8 dup(0)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(0)
-				byte 8 dup(7)
-				byte 8 dup(0)
-				byte 8 dup(7)
-				byte 8 dup(0)
-				byte 8 dup(7)
-				byte 8 dup(0)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(7)
-				byte 8 dup(0)
-
-posTUBE1	word llimit-8, ulimit+15
-			word llimit-8, ulimit+55
-			word llimit-8, ulimit+95
-			word llimit-8, ulimit+135
-			word rlimit, ulimit+15
-			word rlimit, ulimit+55
-			word rlimit, ulimit+95
-			word rlimit, ulimit+135
-			
-nbrTUBES1	dw 8
-			
-TUBE2		word 27, 8
-			byte 3 dup(0), 21 dup(1), 3 dup(0)
-			byte 1 dup(0), 25 dup(1), 1 dup(0)
-			byte 27 dup(1)
-			byte 27 dup(1)
-			byte 27 dup(1)
-			byte 27 dup(1)
-			byte 1 dup(0), 25 dup(1), 1 dup(0)
-			byte 3 dup(0), 21 dup(1), 3 dup(0)
-
-posTUBE2	word llimit+20, ulimit-8
-			word llimit+60, ulimit-8
-			word llimit+100, ulimit-8
-			word llimit+140, ulimit-8
-			word llimit+180, ulimit-8
-			word llimit+220, ulimit-8
-			word llimit+260, ulimit-8
-			
-nbrTUBES2	dw 7
-
-TUBE2colour	byte 4 dup(0);maakt niet uit
-				byte 10 dup(7), 0, 7, 0, 7, 0, 7, 0, 10 dup(7)
-				byte 10 dup(7), 0, 7, 0, 7, 0, 7, 0, 10 dup(7)
-				byte 0, 9 dup(7), 0, 7, 0, 7, 0, 7, 0, 9 dup(7), 0
-				byte 0, 9 dup(7), 0, 7, 0, 7, 0, 7, 0, 9 dup(7), 0
-				byte 0, 9 dup(7), 0, 7, 0, 7, 0, 7, 0, 9 dup(7), 0
-				byte 0, 9 dup(7), 0, 7, 0, 7, 0, 7, 0, 9 dup(7), 0
-				byte 10 dup(7), 0, 7, 0, 7, 0, 7, 0, 10 dup(7)
-				byte 10 dup(7), 0, 7, 0, 7, 0, 7, 0, 10 dup(7)
-
-
-; PIPES
-; -------------------------------------
-PIPE1		word 8, 13
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			byte 2 dup(0), 4 dup(1), 2 dup(0)
-			
-
-posPIPE1	word llimit-8, ulimit+15-13-13
-			word llimit-8, ulimit+15-13
-			word llimit-8, ulimit+55-13
-			word llimit-8, ulimit+95-13
-			word llimit-8, ulimit+135-13
-			word rlimit, ulimit+15-13-13
-			word rlimit, ulimit+15-13
-			word rlimit, ulimit+55-13
-			word rlimit, ulimit+95-13
-			word rlimit, ulimit+135-13
-			
-nbrPIPES1	dw 10
-
-SIZEOFPIPE1	equ $-PIPE1
-PIPE1colour	db SIZEOFPIPE1 dup(7)
-
-PIPE2		word 13, 8
-			byte 13 dup(0)
-			byte 13 dup(0)
-			byte 13 dup(1)
-			byte 13 dup(1)
-			byte 13 dup(1)
-			byte 13 dup(1)
-			byte 13 dup(0)
-			byte 13 dup(0)
-
-posPIPE2	word llimit+20-13-13, ulimit-8
-			word llimit+20-13, ulimit-8
-			word llimit+60-13, ulimit-8
-			word llimit+100-13, ulimit-8
-			word llimit+140-13, ulimit-8
-			word llimit+180-13, ulimit-8
-			word llimit+220-13, ulimit-8
-			word llimit+260-13, ulimit-8
-			word llimit+300-13, ulimit-8
-			word llimit+300-5, ulimit-8
-			
-nbrPIPES2	dw 10
-
-SIZEOFPIPE2	equ $-PIPE2
-PIPE2colour	db SIZEOFPIPE2 dup(7)
-
-; ==============================================================================
-; SCREEN BUFFER
-; ==============================================================================
-.FARDATA?	; segment that contains the screenBuffer for mode 13h drawing
-palette			db 768 dup(0)
-screenBuffer	db 64000 dup(backgrColour)	; the 64000 bytes for the screen
+include data.asm
 
 ; ==============================================================================
 ; CODE SEGMENT
@@ -726,28 +35,27 @@ main PROC NEAR
 	call	setVideoMode
 	mov		[oldVideoMode], al
 	
+	; MENU
+	; -------------------------------------
 	call printArkanoid
 	
 	call updateScreen
 	
-	; MENU
-	; -------------------------------------
-	mov ah, 02h							; select function 09h (set cursor)
-	mov	dh, 15							; y position of cursor
-	mov	dl, 12 						; x position of cursor
-	xor 	bh, bh 						; viode page 0
-	int 10h								; set cursor
-	mov	ah, 09h						; select function 09h (print string)
-	mov	dx, offset msgMenu1		; load offset address of msgMenu1 (press P to begin)
-	int	21h
-	mov ah, 02h							; select function 09h (set cursor)
-	mov	dh, 17						; y position of cursor
-	mov	dl, 11 						; x position of cursor
-	xor 	bh, bh 						; viode page 0
-	int 10h								; set cursor
-	mov	ah, 09h						; select function 09h (print string)
-	mov	dx, offset msgExit		; load offset address of msgMenu1 (press Q to exit)
-	int	21h
+	call SetHighscore
+	
+	mov	ah, 12	; xcursor
+	mov	al, 15	; ycursor
+	push 	ax
+	lea	ax, msgMenu1	; adress message
+	push 	ax
+	call printString
+	
+	mov	ah, 11	; xcursor
+	mov	al, 17	; ycursor
+	push 	ax
+	lea	ax, msgExit	; adress message
+	push 	ax
+	call printString
 	
   	mov	ax, seg __keysActive
   	mov	es, ax
@@ -778,6 +86,7 @@ newGame PROC NEAR
 	mov	[LEVEL], 1		; begin with level 1
 	mov	[MAXLIFE], 3
 	
+	call 	loadLevels
 	call 	drawBackground
 	call	newLevel			; start new level
 	
@@ -834,7 +143,7 @@ newLevel PROC NEAR
 	int 	10h				; set cursor
 	mov 	ax, [LEVEL]
 	push 	ax
-	call 	printint
+	call 	printInt
 	
 	call printScore
 	
@@ -859,29 +168,28 @@ newLevel PROC NEAR
    	call updateScreenBuffer			; draw bricks/bar/ball/harts
 	
 	; print string (press P to begin)
- 	mov ah, 02h							; select function 02h (set cursor)
- 	mov	dh, 15						; y position of cursor
- 	mov	dl, 9							; x position of cursor
-	xor 	bh, bh 						; viode page 0
- 	int 10h								; set cursor
- 	mov	ah, 09h						; select function 09h (print string)
- 	mov	dx, offset msgMenu3		; load offset address of msgMenu3 (press P to begin)
- 	int	21h
+ 	mov	ah, 9	; xcursor
+	mov	al, 15	; ycursor
+	push 	ax
+	lea	ax, msgMenu3	; adress message
+	push 	ax
+	call printString
 	
    mov	ax, seg __keysActive
    mov	es, ax
 	
-	; wait (for smooth transition between levels)
+	; wait 1/8 sec (for smooth transition between levels)
 	@@:
-	mov cx, 999999999
-	watiloop:
-		mov ax, 99
-		mul ax
-		mul ax
-		mul ax
-		inc cx
-		cmp cx, 0
-		jnz watiloop
+	mov	ax, 00h
+	int	1ah	; read System-Timer Time Counter 
+	mov	ax, dx
+	add	ax, 1	; (12h = 18: 1 sec)
+	mov	[tik], ax
+	DELAY:
+		mov ax, 00h
+		int	1ah
+		cmp	[tik], dx
+		jge DELAY
 	
 	mov	al, es:[__keyboardState][SCANCODE_Q]
 	cmp	al, 0
@@ -961,29 +269,49 @@ DRAWloop:
 	
 newLevel ENDP
 
-printScore PROC NEAR
+loadLevels PROC NEAR
 	
-	push ax
-	push bx
-	push cx
-	push dx
+	push	ax
+	push	cx
+	push	dx
+	push	si
+	push	di
+	push	ds
+	push	es
 	
-	mov ah, 02h				; select function 09h (set cursor)
-	mov	dh, 1				; y position of cursor
-	mov	dl, 24			; x position of cursor
-	xor 	bh, bh 			; viode page 0
-	int 10h					; set cursor
-	mov	ax, [SCORE]
-	push  ax
-	call printint
+	mov	ax, @data	; get data segment address
+	mov	ds, ax		; set DS to data segment
+	mov	es, ax		; set ES to data segment
 	
-	pop dx
-	pop cx
-	pop bx
-	pop ax
+	mov cx, 0
+	levelloop:
+		push 	cx
+		mov	si, cx
+		sal	si, 1
+		mov	ax, [nbrBRICKS][si]
+		sal	ax, 1
+		mov	cx, ax	 ;set counter
+		mov 	ax, [posBRICKS][si]
+		mov	di, ax
+		mov	ax, [inposBRICKS][si] 
+		mov	si, ax
+		cld	; clear direction flag (inc di/si when movsw)
+		rep	movsw	; blit to screen	/ Move word at address DS:SI to address ES:DI
+		pop	cx
+		inc 	cx
+		cmp 	cx, [nbrLEVELS]
+		jne	levelloop
 	
-	ret 0
-printScore ENDP
+	pop		es
+	pop		ds
+	pop		di
+	pop		si
+	pop		dx
+	pop		cx
+	pop		ax
+	ret		0
+
+loadLevels ENDP
 
 updateScreenBuffer PROC NEAR
 	
@@ -1163,23 +491,35 @@ drawBackground PROC NEAR
 	call 	updateScreen
 	
 	; Draw strings
-	mov ah, 02h							; select function 02h (set cursor)
-	mov	dh, 1							; y position of cursor
-	mov	dl, 17						; x position of cursor
-	xor 	bh, bh 						; viode page 0
-	int 10h								; set cursor
-	mov	ah, 09h						; select function 09h (print string)
-	mov	dx, offset msgScore		; load offset address of msgScore (highscore)
-	int	21h
+	mov	ah, 10	; xcursor
+	mov	al, 1	; ycursor
+	push 	ax
+	lea	ax, msgScore	; adress message
+	push 	ax
+	call printString
 	
-	mov ah, 02h							; select function 02h (set cursor)
-	mov	dh, 1							; y position of cursor
-	mov	dl, 1							; x position of cursor
-	xor 	bh, bh 						; viode page 0
-	int 10h								; set cursor
-	mov	ah, 09h						; select function 09h (print string)
-	mov	dx, offset msgLevels		; load offset address of msgScore (highscore)
-	int	21h
+	mov	ah, 22	; xcursor
+	mov	al, 1	; ycursor
+	push 	ax
+	lea	ax, msgHighScore	; adress message
+	push 	ax
+	call printString
+	
+	mov ah, 02h            			; select function 09h (set cursor)
+	mov  dh, 1        				; y position of cursor
+	mov  dl, 33      					; x position of cursor
+	xor   bh, bh       				; viode page 0
+	int 10h          					; set cursor
+	mov  ax, [highscore]
+	push  ax
+	call printInt
+	
+	mov	ah, 1	; xcursor
+	mov	al, 1	; ycursor
+	push 	ax
+	lea	ax, msgLevels	; adress message
+	push 	ax
+	call printString
 		
 	pop	es
 	pop	ds
@@ -1770,7 +1110,7 @@ bricksDetection PROC NEAR
 		mov	ax, [bx + 2][si]
 		push ax					; arg2 (y position)
 		mov	ax, [bx][si]
-		push ax					; arg1 (x position)
+		push ax					; integer (x position)
 		call  brickDetection
 		pop	ax
 		mov	[currentvisBRICKS][di], al 
@@ -1934,66 +1274,198 @@ brickDetection ENDP
 
 moveBricks PROC NEAR
 
-	push	ax
-	push	bx
-	push	cx
-	push	dx
-	
-	mov	cx, [currentnbrBRICKS]
-	mov 	bx, [currentstateBRICKS]
-	mov	si, 0										; array index number
-	@@:
-		xor ah, ah
-		mov	al, [bx][si]
-		cmp al, 0
-		je nextBrick
-		push bx ; save bx
-		push si
-		sal si, 1
-		sal si, 1
-		cmp al, 1 ; check witch direction
-		je moveright
-		; move left
-			mov 	bx, [currentposBRICK]
-			mov	ax, [bx][si]
-			mov	dx, ax
-			add	dx, [BRICK][0]
-			cmp	dx, llimit
-			jge add1
-			mov 	ax, rlimit		; if crossed set to the other edge
-			jmp saveNewpos
-			add1:
-			dec ax
-			jmp saveNewpos
-		
-		; move right
-		moveright:
-			mov 	bx, [currentposBRICK]
-			mov	ax, [bx][si]
-			cmp 	ax, rlimit	; check if brick crossed edge
-			jle add2
-			mov ax, llimit		; if crossed set to the other edge
-			sub	ax, [BRICK][0]
-			jmp saveNewpos
-			add2:
-			inc ax
-		saveNewpos:
-		mov	[bx][si], ax
-		pop 	si
-		pop 	bx	; restore bx
-		nextBrick:
-		dec 	cx
-		inc 	si
-		cmp 	cx, 0
-		jnz	@B	
-		
-	pop	dx
-	pop	cx
-	pop	bx
-	pop	ax
-	ret	0
+        push        ax
+        push        bx
+        push        cx
+        push        dx
+        
+        mov        cx, [currentnbrBRICKS]
+        mov         bx, [currentstateBRICKS]
+        mov        si, 0                                                                                ; array index number
+        xor ah, ah ;ah leegmaken
+        
+        moveloop:
+                mov        al, [bx][si]
+                cmp al, 0
+                je nextBrick
+                
+                cmp al, 3
+                jge movevert
+                
+                ;move horizontal
+                push ax
+                push si 
+                call moveBrickHorz
+                jmp nextBrick
+                
+                movevert:
+                push ax
+                push si 
+                call moveBrickVert
+                
+                nextBrick:
+                dec         cx
+                inc         si
+                cmp         cx, 0
+                jnz        moveloop        
+                
+        pop        dx
+        pop        cx
+        pop        bx
+        pop        ax
+        ret        0
 
 moveBricks ENDP
+
+moveBrickHorz PROC NEAR
+                        
+        push        bp
+        mov        bp, sp
+        
+        push        ax
+        push        bx
+        push        cx
+        push        dx
+        push si
+        
+        mov si, [bp + 4]
+        mov ax, [bp + 6]
+        
+        
+        ;si maal 4
+        sal si, 1
+        sal si, 1
+        
+                        cmp al , 1
+                        jne @F 
+                ; move left
+                        mov         bx, [currentposBRICK]
+                        mov        ax, [bx][si]
+                        mov        dx, ax
+                        add        dx, [BRICK][0]
+                        cmp        dx, llimit
+                        jge add1
+                        mov         ax, rlimit                ; if crossed set to the other edge
+                        jmp saveNewpos
+                        add1:
+                        push si
+                        mov si, [LEVEL]
+                        dec si
+                        sal si ,1
+                        mov        dx, [moveBrickspeed][si]
+                        sub ax, dx
+                        pop si
+                        jmp saveNewpos
+                
+                @@:        
+                ; move right
+                        mov         bx, [currentposBRICK]
+                        mov        ax, [bx][si]
+                        cmp         ax, rlimit        ; check if brick crossed edge
+                        jle add2
+                        mov ax, llimit                ; if crossed set to the other edge
+                        sub        ax, [BRICK][0]
+                        jmp saveNewpos
+                        add2:
+                                                push si
+                        mov si, [LEVEL]
+                        dec si
+                        sal si, 1
+                        mov        dx, [moveBrickspeed][si]
+                        add ax, dx
+                        pop si
+                
+                saveNewpos:
+                mov        [bx][si], ax
+                
+        ; We are done
+        pop si
+        pop        dx
+        pop        cx
+        pop        bx
+        pop        ax
+        
+        ; return
+        pop        bp
+        ret        4
+        
+moveBrickHorz ENDP
+
+
+moveBrickVert PROC NEAR
+                        
+        push        bp
+        mov        bp, sp
+        
+
+        push        ax
+        push        bx
+        push        cx
+        push        dx
+        push    si
+        
+        mov si, [bp + 4]
+        mov ax, [bp + 6]
+        
+        
+        ;si maal 4
+        sal si, 1
+        sal si, 1
+        
+        cmp al , 3
+        jne @F 
+        ; move up
+        mov         bx, [currentposBRICK]
+        mov        ax, [bx + 2][si]
+        mov        dx, ax
+        add        dx, [BRICK][2]
+        cmp        dx, ulimit
+        jge add1
+        mov         ax, blimit-120                ; if crossed set to the other edge
+        jmp saveNewpos
+        add1:
+                        push si
+                        mov si, [LEVEL]
+                        dec si
+                        sal si, 1
+                        mov        dx, [moveBrickspeed][si]
+                        sub ax, dx
+                        pop si
+        jmp saveNewpos
+        
+        @@:
+        ; move down
+        mov         bx, [currentposBRICK]
+        mov        ax, [bx + 2][si]
+        cmp         ax, blimit-70        ; check if brick crossed edge
+        jle add2
+        mov ax, ulimit                ; if crossed set to the other edge
+        sub        ax, [BRICK][2]
+        jmp saveNewpos
+        add2:
+                        push si
+                        mov si, [LEVEL]
+                        dec si
+                        sal si, 1
+                        mov        dx, [moveBrickspeed][si]
+                        add ax, dx
+                        pop si
+                
+        saveNewpos:
+                mov        [bx + 2][si], ax
+                
+        ; We are done
+        pop si
+        pop        dx
+        pop        cx
+        pop        bx
+        pop        ax
+
+        ; return
+        pop        bp
+        ret        4
+        
+moveBrickVert ENDP
 
 ; --- DRAWING -------------------------------------
 ; Draw a rectangle at the center of the screen buffer.
@@ -2009,11 +1481,15 @@ drawRECT PROC NEAR
 	push	di
 	push	es
 	
+	addrpos		equ [bp + 4]
+	addrdim  	equ [bp + 6]
+	rectColour	equ [bp + 8]
+	
 	; set segment
 	mov	ax, seg screenBuffer
 	mov	es, ax
 	
-	mov 	bx, [bp + 4] ; adress of position
+	mov 	bx, addrpos
 	
 	mov	ax, SCREENW
 	mov 	dx, [bx][2]
@@ -2021,12 +1497,14 @@ drawRECT PROC NEAR
 	add   ax, [bx][0]
 	add	ax, offset screenBuffer
 	mov	di, ax
-	mov 	bx, [bp + 6]
+	
+	mov 	bx, addrdim
 	mov	cx, [bx][2]
 	 drawloop:
 	 	push cx  
-	 	mov  cx, [bx][0]  ; rect Width
-	 	mov  al, [bp + 8]  ; color
+	 	mov	cx, [bx][0]  ; rect Width
+	 	mov 	al, rectColour  ; color
+		xor	ah, ah
 	 	cld
 	 	rep  stosb  ; draw  
 	 	sub  di, [bx][0]
@@ -2076,35 +1554,33 @@ drawObject Proc NEAR
 	mov dx, 0 ; kolom
 	mov si, 4
 	
-	mov 	ax, [bp + 6]
-	mov 	[adressObject], ax
-	mov 	ax, [bp + 8]
-	mov 	[adressColour], ax
+	adressObject equ [bp + 6]
+	adressColour equ [bp + 8]
 	
 	draw_newline: 
-		mov 	bx, [adressObject]
+		mov 	bx, adressObject
 		mov 	ax, [bx][si]
 		cmp 	al,0
 		je	nextpos
 		draw:
-		mov 	bx, [adressColour]
+		mov 	bx, adressColour
 		mov 	al, [bx][si]
 		mov	es:[di], al	; set pixel
 		nextpos:
 		inc 	si
 		inc 	dx
 		inc	di
-		mov 	bx, [adressObject]
+		mov 	bx, adressObject
 		cmp	dx, [bx][0]
 		je nextline
 		jmp draw_newline
 		nextline:
 		inc	cx
 		add 	di, SCREENW
-		mov 	bx, [adressObject]
+		mov 	bx, adressObject
 		cmp 	cx, [bx][2]
 		je draw_done
-		mov 	bx, [adressObject]
+		mov 	bx, adressObject
 		mov	ax, [bx][0]
 		neg 	ax
 		add	di, ax
@@ -2137,42 +1613,40 @@ endGame PROC NEAR
  	call clearScreenBuffer
  	call updateScreen
 	
+	; Save score if highscore
+	call SaveHighscore
+	
 	; MENU
-	mov ah, 02h							; select function 09h (set cursor)
-	mov	dh, 5							; y position of cursor
-	mov	dl, 15 						; x position of cursor
-	xor 	bh, bh 						; viode page 0
-	int 10h								; set cursor
-	mov	ah, 09h						; select function 09h (print string)
-	mov	dx, offset msgYScore		; load offset address of msgYScore (Your Score: )
-	int	21h
+ 	mov	ah, 15	; xcursor
+	mov	al, 5	; ycursor
+	push 	ax
+	lea	ax, msgYScore	; adress message
+	push 	ax
+	call printString
 	
 	mov ah, 02h							; select function 09h (set cursor)
 	mov	dh, 7							; y position of cursor
-	mov	dl, 18 						; x position of cursor
+	mov	dl, 19 						; x position of cursor
 	xor 	bh, bh 						; viode page 0
 	int 10h	
 	mov	ax, [SCORE]
 	push  ax
-	call printint
+	call printInt
 	
-	mov ah, 02h							; select function 09h (set cursor)
-	mov	dh, 17						; y position of cursor
-	mov	dl, 7 						; x position of cursor
-	xor 	bh, bh 						; viode page 0
-	int 10h								; set cursor
-	mov	ah, 09h						; select function 09h (print string)
-	mov	dx, offset msgNewgame	; load offset address of msgNewgame (press P to start a new game)
-	int	21h	
+ 	mov	ah, 7	; xcursor
+	mov	al, 16	; ycursor
+	push 	ax
+	lea	ax, msgNewgame	; adress message
+	push 	ax
+	call printString
 	
-	mov ah, 02h							; select function 09h (set cursor)
-	mov	dh, 19						; y position of cursor
-	mov	dl, 7 						; x position of cursor
-	xor 	bh, bh 						; viode page 0
-	int 10h								; set cursor
-	mov	ah, 09h						; select function 09h (print string)
-	mov	dx, offset msgExit		; load offset address of msgMenu1 (press ESC to exit)
-	int	21h
+ 	mov	ah, 11	; xcursor
+	mov	al, 19	; ycursor
+	push 	ax
+	lea	ax, msgExit	; adress message
+	push 	ax
+	call printString
+	
 	
 	; wait for p to begin
   	mov	ax, seg __keysActive
@@ -2210,7 +1684,7 @@ endProgram PROC NEAR
 	xor		ah, ah
 	push	ax
 	call	setVideoMode
-
+	
 	; Exit to DOS
 	mov		ax, 4c00h	; exit to DOS function, return code 00h
 	int		21h			; call DOS
@@ -2219,11 +1693,8 @@ endProgram PROC NEAR
 	
 endProgram ENDP
 
-printint PROC NEAR
-	; argument/local variables addresses
-	argBytes EQU 2 ; EQU === equates to
-	arg1 EQU [bp + 4][0] 
-	; code
+printInt PROC NEAR
+
 	push	bp	; save dynamic link
 	mov	bp, sp	; update bp
 	; save context on stack
@@ -2232,15 +1703,26 @@ printint PROC NEAR
 	push	cx
 	push	dx
 	push	si	
-	; load param in bx
-	mov	bx, arg1	; near proc, one word return address
-	; handle special case of zero
+	
+	integer equ [bp + 4]
+
+	mov	bx, integer
+	
+	cmp bx, 0
+	jne @F
+	mov ah, 02h
+	mov dx, 0
+	add dl, 48 ; converteert het tot ASCII
+	int 21h
+	jmp printInt_done
+@@:	
 	test	bx, 0FFFFh ; test if bx is negative
-	jnz	@F	; jmp forward to next @@ label
-	mov	ah, 02h
-	mov	dl, '0'
-	int	21h		; print the '0' character
-	jmp	@printint_done
+	jnz	@F
+	mov	ah, 2
+	mov	dl, '-'
+	int	21h
+	; invert sign of bx
+	neg	bx
 @@:
 	; prepare powers-of-ten on stack
 	mov	ax, 1
@@ -2253,31 +1735,27 @@ printint PROC NEAR
 	push	ax
 	mov	ax, 10000
 	push	ax
-	; from now on bx is strictly positive
-	; determine largest power of ten smaller than bx
-	; init si to point to first element of powersoften array
-	; while bx < cx, pop cx 
+
 @@:
 	pop	cx
 	cmp	bx, cx
-	jb	@B	; jmp back to @@ label
+	jb	@B
 @@:
-	; ok now print digits
 	mov	ax, bx
 	cwd		; sign extend to DX:AX (32-bit)
 	idiv	cx	; divide DX:AX by current power of ten
 				; result in AX, remainder in DX
-	mov	bx, dx	; move remainder to bx
+	mov	bx, dx
 	mov	ah, 02h	; print one character
 	mov	dl, al	; al contains the digit, move into dl
 	add	dl, 48	; add 48 to convert it to ASCII digit
-	int	21h	; call DOS function
-	; was this the last digit? i.e. [si] equals 1
+	int	21h
+
 	cmp	cx, 1
-	je	@printint_done
+	je	printInt_done
 	pop	cx	; next power of ten
 	jmp	@B ; repeat for next digit
-@printint_done:
+printInt_done:
 	; restore context (reverse pop the registers)
 	pop	si
 	pop	dx
@@ -2287,48 +1765,70 @@ printint PROC NEAR
 	; restore sp and bp
 	mov	sp, bp
 	pop	bp
-	; return freeing param from stack (2 bytes)
-	ret	argBytes
-printint ENDP
 
-; print a signed integer to stdout
-; value on stack
-printints PROC NEAR
-	; argument/local variables addresses
-	argBytes EQU 2
-	arg1 EQU [bp + 4][0]
-	; code
-	push	bp	; save dynamic link
-	mov	bp, sp	; update bp
+	ret	2
+printInt ENDP
+
+printString PROC NEAR
+	
+	push  bp  ; save dynamic link
+	mov  bp, sp  ; update bp
 	; save context on stack
-	push	ax
-	push	bx
-	push	dx
-	; load param in bx
-	mov	bx, arg1	; near proc, one word return address
-	; handle special case of zero and test for sign
-	cmp	bx, 0
-	jge	@F
-	; if negative, print sign and invert
-	; print sign (int 21h, function 02h)
-	mov	ah, 2
-	mov	dl, '-'
+	push  ax
+	push  bx
+	push  cx
+	push  dx
+	push  si 
+	
+	xcursor equ [bp + 7]
+	ycursor equ [bp + 6]
+	message equ [bp + 4]
+	
+	mov 	ah, 02h			; select function 09h (set cursor)
+	mov	dl, xcursor 	; x position of cursor
+	mov	dh, ycursor		; y position of cursor
+	xor 	bh, bh 			; viode page 0
+	int 	10h				; set cursor
+	mov	ah, 09h			; select function 09h (print string)
+	mov	dx, message		; load offset address of msgMenu1 (press Q to exit)
 	int	21h
-	; invert sign of bx
-	neg	bx
-@@:
-	push	bx
-	call	printint	
-	; restore context (reverse pop the registers)
-	pop	dx
-	pop	bx
-	pop	ax
-	; restore sp and bp
-	mov	sp, bp
-	pop	bp
-	; return freeing param from stack (2 bytes)
-	ret	argBytes
-printints ENDP
+	
+ 	pop  si
+ 	pop  dx
+ 	pop  cx
+ 	pop  bx
+ 	pop  ax
+ 	; restore sp and bp
+ 	mov  sp, bp
+ 	pop  bp
+
+	ret 4
+
+printString ENDP
+
+printScore PROC NEAR
+	
+	push ax
+	push bx
+	push cx
+	push dx
+	
+	mov ah, 02h				; select function 09h (set cursor)
+	mov	dh, 1				; y position of cursor
+	mov	dl, 17			; x position of cursor
+	xor 	bh, bh 			; viode page 0
+	int 10h					; set cursor
+	mov	ax, [SCORE]
+	push  ax
+	call printInt
+	
+	pop dx
+	pop cx
+	pop bx
+	pop ax
+	
+	ret 0
+printScore ENDP
 
 printArkanoid PROC NEAR
 
@@ -2449,8 +1949,145 @@ beep PROC NEAR
 	and al, 11111100b 	; change last bits to 0
 	out 61h, al				; send value to port 61h
 	
-	ret
+	ret 0
 beep ENDP
+
+SaveHighscore PROC NEAR
+	
+	push  bp  ; save dynamic link
+ 	mov  bp, sp  ; update bp
+ 	; save context on stack
+ 	push  ax
+ 	push  bx
+ 	push  cx
+ 	push  dx
+ 	push  si  
+	
+	; open file
+ 	mov  ax,3d00h
+ 	lea  dx,[filename]
+ 	int  21h
+ 	jnc @F     ;als de carry niet gezet is dan kan men voort gaan met het lezen van de file
+  
+ 	;anders moet men de highscore gewoon op nul initializeren 
+ 	mov ax , [SCORE]
+ 	mov [highscore], ax
+ 	jmp @@save
+ 
+ @@:
+ 	mov bx, ax ; put handle in BX
+	
+ 	; read from file
+ 	mov  ah,3fh
+ 	mov  cx,2
+ 	lea  dx,[highscore]
+ 	int  21h
+ 	jnc  @F 	
+	;min highscore gewoon megeven zodanig score zowiezo wordt weggeschreven 
+ 	mov highscore,0
+ 	
+	@@:
+ 	;compare scores
+ 	mov ax, [SCORE]  ;we halen de behaalde score van de stack 
+ 	cmp ax, [highscore]
+ 	jle done
+	
+	; print (new Highscore)
+	mov ah, 02h							; select function 09h (set cursor)
+	mov	dh, 10						; y position of cursor
+	mov	dl, 14 						; x position of cursor
+	xor 	bh, bh 						; viode page 0
+	int 10h								; set cursor
+	mov	ah, 09h						; select function 09h (print string)
+	mov	dx, offset msgNewhigh	; load offset address of msgYScore (NEW HIGHSCORE)
+	int	21h
+	
+	mov ax, [SCORE]
+	mov [highscore], ax
+ 	@@save:
+ 	;file open for writing
+ 	mov  ax,3d01h
+ 	lea  dx,[filename]
+ 	int  21h
+ 	jnc @F
+  
+  ; try to create the file
+ 	mov ah, 3ch
+ 	mov cl, 0
+ 	lea dx, [filename]
+ 	int 21h
+ 	jc done ; error occured
+	
+	@@:
+ 	mov  bx, ax ; put handle in BX
+ 
+ 	; write score to file
+ 	mov  ah,40h
+ 	mov  cx,2
+ 	lea  dx,[highscore]
+ 	int  21h
+ 
+ 	; close file
+ 	mov  ah,3eh
+ 	int  21h
+ 
+ 	done:
+ 	; restore context (reverse pop the registers)
+ 	pop  si
+ 	pop  dx
+ 	pop  cx
+ 	pop  bx
+ 	pop  ax
+ 	; restore sp and bp
+ 	mov  sp, bp
+ 	pop  bp
+ 	ret 0
+  
+ SaveHighscore ENDP
+ 
+ SetHighscore PROC NEAR
+ 
+ 	push  bp  ; save dynamic link
+ 	mov  bp, sp  ; update bp
+	; save context on stack
+ 	push  ax
+ 	push  bx
+ 	push  cx
+ 	push  dx
+ 	push  si  
+	  
+ ; open file
+ 	mov  ax,3d00h
+ 	lea  dx,[filename]
+ 	int  21h
+ 	jnc readHighScore    ;als de carry niet gezet is dan kan men voort gaan met het lezen van de file
+	 
+	;anders moet men de highscore gewoon op nul initializeren
+ 	mov [highscore], 0
+ 	jmp done
+	
+ 	readHighScore:
+ 	mov bx, ax ; put handle in BX
+ 	
+	; read from file
+ 	mov  ah,3fh
+ 	mov  cx,2
+ 	lea  dx,[highscore]
+ 	int  21h
+	 
+ 	done:
+ 	; restore context (reverse pop the registers)
+ 	pop  si
+ 	pop  dx
+ 	pop  cx
+ 	pop  bx
+ 	pop  ax
+ 	; restore sp and bp
+ 	mov  sp, bp
+ 	pop  bp
+ 	ret 0
+	
+SetHighscore ENDP
 
 ; _------------------------------- END OF CODE ---------------------------------
 END main
