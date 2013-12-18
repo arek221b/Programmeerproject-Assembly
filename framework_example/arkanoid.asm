@@ -269,15 +269,118 @@ DRAWloop:
 	
 newLevel ENDP
 
+; ------------------------------------------------------------
+; END GAME
+; ------------------------------------------------------------
+
+endGame PROC NEAR
+	
+	push	bp
+	mov	bp, sp
+	
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	
+ 	call clearScreenBuffer
+ 	call updateScreen
+	
+	; Save score if highscore
+	call SaveHighscore
+	
+	; MENU
+ 	mov	ah, 15	; xcursor
+	mov	al, 5	; ycursor
+	push 	ax
+	lea	ax, msgYScore	; adress message
+	push 	ax
+	call printString
+	
+	mov ah, 02h							; select function 09h (set cursor)
+	mov	dh, 7							; y position of cursor
+	mov	dl, 19 						; x position of cursor
+	xor 	bh, bh 						; viode page 0
+	int 10h	
+	mov	ax, [SCORE]
+	push  ax
+	call printInt
+	
+ 	mov	ah, 7	; xcursor
+	mov	al, 16	; ycursor
+	push 	ax
+	lea	ax, msgNewgame	; adress message
+	push 	ax
+	call printString
+	
+ 	mov	ah, 11	; xcursor
+	mov	al, 19	; ycursor
+	push 	ax
+	lea	ax, msgExit	; adress message
+	push 	ax
+	call printString
+	
+	
+	; wait for p to begin
+  	mov	ax, seg __keysActive
+  	mov	es, ax
+	@@:
+		mov	al, es:[__keyboardState][SCANCODE_ESC]
+		cmp	al, 0
+		jz	checkP
+		call endProgram
+		checkP:
+		mov	al, es:[__keyboardState][SCANCODE_P]
+		cmp	al, 0
+		je		@B
+	
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	
+	pop	bp
+	
+	call 	newGame
+	
+	ret 0
+	
+endGame ENDP
+
+; ------------------------------------------------------------
+; END PROGRAM
+; ------------------------------------------------------------
+
+endProgram PROC NEAR
+	
+	; Restore original keyboard handler
+	call	uninstallKeyboardHandler
+
+	; Restore original video mode
+	mov		al, [oldVideoMode]
+	xor		ah, ah
+	push	ax
+	call	setVideoMode
+	
+	; Exit to DOS
+	mov		ax, 4c00h	; exit to DOS function, return code 00h
+	int		21h			; call DOS
+	
+	ret 0
+	
+endProgram ENDP
+
+
+; ------------------------------------------------------------
+; LOAD LEVELS
+; ------------------------------------------------------------
+
 loadLevels PROC NEAR
 	
 	push	ax
 	push	cx
 	push	dx
 	push	si
-	push	di
-	push	ds
-	push	es
 	
 	mov	ax, @data	; get data segment address
 	mov	ds, ax		; set DS to data segment
@@ -302,9 +405,6 @@ loadLevels PROC NEAR
 		cmp 	cx, [nbrLEVELS]
 		jne	levelloop
 	
-	pop		es
-	pop		ds
-	pop		di
 	pop		si
 	pop		dx
 	pop		cx
@@ -312,6 +412,10 @@ loadLevels PROC NEAR
 	ret		0
 
 loadLevels ENDP
+
+; ------------------------------------------------------------
+; SCREENBUFFER FUNCTIONS
+; ------------------------------------------------------------
 
 updateScreenBuffer PROC NEAR
 	
@@ -389,205 +493,6 @@ updateScreenBuffer PROC NEAR
 	ret 0
 	
 updateScreenBuffer ENDP
-
-setInit PROC NEAR
-	;initialisten van de vector
-	
-	mov ax, [speedBALLinit][0]
-	mov [speedBALL][0], ax
-	mov ax, [speedBALLinit][2]
-	mov [speedBALL][2], ax
-
-	;initialiseren van start positie van de bal
-
-	mov 	ax, [posBAR][0]
-	mov	[posBALL][0], ax
-	
-	mov	ax, [posBAR][2]
-	sub 	ax, [BALL][2]
-	mov 	[posBALL][2], ax
-	
-	ret 0
-
-setInit ENDP
-
-drawBackground PROC NEAR
-
-	push 	bp
-	mov	bp, sp 
-	push	cx
-	push	dx
-	push	si
-	push	di
-	push	ds
-	push	es
-	
-	call clearScreenBuffer
-	
-	; draw TUBE1	
-	mov 	cx, [nbrTUBES1]
-	mov	bx, 0
-	@@:
-		mov 	ax, offset TUBE1colour
-		push 	ax
-		mov 	ax, offset TUBE1
-		push 	ax
-		lea 	ax, [posTUBE1][bx]
-		push 	ax
-		call 	drawObject
-		dec 	cx
-		add	bx, 4
-		cmp 	cx, 0
-		jnz	@B
-		
-	; draw TUBE2	
-	mov 	cx, [nbrTUBES2]
-	mov	bx, 0
-	@@:
-		mov 	ax, offset TUBE2colour
-		push 	ax
-		mov 	ax, offset TUBE2
-		push 	ax
-		lea 	ax, [posTUBE2][bx]
-		push 	ax
-		call 	drawObject
-		dec 	cx
-		add	bx, 4
-		cmp 	cx, 0
-		jnz	@B
-		
-	; draw PIPE1	
-	mov 	cx, [nbrPIPES1]
-	mov	bx, 0
-	@@:
-		mov 	ax, offset PIPE1colour
-		push 	ax
-		mov 	ax, offset PIPE1
-		push 	ax
-		lea 	ax, [posPIPE1][bx]
-		push 	ax
-		call 	drawObject
-		dec 	cx
-		add	bx, 4
-		cmp 	cx, 0
-		jnz	@B
-		
-	; draw PIPE2	
-	mov 	cx, [nbrPIPES2]
-	mov	bx, 0
-	@@:
-		mov 	ax, offset PIPE2colour
-		push 	ax
-		mov 	ax, offset PIPE2
-		push 	ax
-		lea 	ax, [posPIPE2][bx]
-		push 	ax
-		call 	drawObject
-		dec 	cx
-		add	bx, 4
-		cmp 	cx, 0
-		jnz	@B
-		
-	call 	updateScreen
-	
-	; Draw strings
-	mov	ah, 10	; xcursor
-	mov	al, 1	; ycursor
-	push 	ax
-	lea	ax, msgScore	; adress message
-	push 	ax
-	call printString
-	
-	mov	ah, 22	; xcursor
-	mov	al, 1	; ycursor
-	push 	ax
-	lea	ax, msgHighScore	; adress message
-	push 	ax
-	call printString
-	
-	mov ah, 02h            			; select function 09h (set cursor)
-	mov  dh, 1        				; y position of cursor
-	mov  dl, 33      					; x position of cursor
-	xor   bh, bh       				; viode page 0
-	int 10h          					; set cursor
-	mov  ax, [highscore]
-	push  ax
-	call printInt
-	
-	mov	ah, 1	; xcursor
-	mov	al, 1	; ycursor
-	push 	ax
-	lea	ax, msgLevels	; adress message
-	push 	ax
-	call printString
-		
-	pop	es
-	pop	ds
-	pop	di
-	pop	si
-	pop	dx
-	pop	cx
-	pop	bp
-	ret	0
-	
-drawBackground ENDP
-
-; --- FUNCTIONS -----------------------------------
-; Fades the active colors to black
-
-calcSquareroot PROC NEAR
-; calculate the square root of ax 
-; Nexton formule f(x) = x^2 - S = 0 --> xn+1 = xn - f(xn)/f'(xn) = 1/2(xn + S/xn)
-; convergence if startvalue is close to root, take here ax
-	push 	bp
-	mov	bp, sp 
-	push	cx
-	push	dx
-	push	si
-	push	di
-	push	ds
-	push	es
-	
-	mov	si, [bp + 4]	; save S
-	calcSquarerootloop:
-		mov	bx, ax	; set next value
-		mov	ax, si
-		mov	cx , bx	
-		cwd		; sign extend to DX:AX (32-bit)
-		idiv	cx	; divide DX:AX by cx
-					; result in AX, remainder in DX
-		add	ax, bx
-		sar	ax, 1 ; divide ax by 2
-		cmp	bx, ax ; check convergence
-		jne	calcSquarerootloop
-	
-	pop	es
-	pop	ds
-	pop	di
-	pop	si
-	pop	dx
-	pop	cx
-	pop	bp
-	ret	2
-	
-calcSquareroot ENDP
-
-fadeToBlack PROC NEAR
-	push	ax
-
-	mov	ax, seg palette
-	push	ax
-	mov	ax, offset palette
-	push	ax
-	call	paletteInitFade
-@@:	waitVBlank
-	call	paletteNextFade
-	test	ax, ax
-	jnz	@B
-
-	pop	ax
-	ret 0
-fadeToBlack ENDP
 
 ; Clears the screen buffer to color 0
 clearScreenBuffer PROC NEAR
@@ -743,6 +648,156 @@ updateGameScreen PROC NEAR
 	ret		0
 updateGameScreen ENDP
 
+; ------------------------------------------------------------
+; BALL FUNCTIONS
+; ------------------------------------------------------------
+
+setInit PROC NEAR
+	;initialisten van de vector
+	
+	mov ax, [speedBALLinit][0]
+	mov [speedBALL][0], ax
+	mov ax, [speedBALLinit][2]
+	mov [speedBALL][2], ax
+
+	;initialiseren van start positie van de bal
+
+	mov 	ax, [posBAR][0]
+	mov	[posBALL][0], ax
+	
+	mov	ax, [posBAR][2]
+	sub 	ax, [BALL][2]
+	mov 	[posBALL][2], ax
+	
+	ret 0
+
+setInit ENDP
+
+; ------------------------------------------------------------
+; DRAW FUNCTIONS
+; ------------------------------------------------------------
+
+drawBackground PROC NEAR
+
+	push 	bp
+	mov	bp, sp 
+	push	cx
+	push	dx
+	push	si
+	push	di
+	push	ds
+	push	es
+	
+	call clearScreenBuffer
+	
+	; draw TUBE1	
+	mov 	cx, [nbrTUBES1]
+	mov	bx, 0
+	@@:
+		mov 	ax, offset TUBE1colour
+		push 	ax
+		mov 	ax, offset TUBE1
+		push 	ax
+		lea 	ax, [posTUBE1][bx]
+		push 	ax
+		call 	drawObject
+		dec 	cx
+		add	bx, 4
+		cmp 	cx, 0
+		jnz	@B
+		
+	; draw TUBE2	
+	mov 	cx, [nbrTUBES2]
+	mov	bx, 0
+	@@:
+		mov 	ax, offset TUBE2colour
+		push 	ax
+		mov 	ax, offset TUBE2
+		push 	ax
+		lea 	ax, [posTUBE2][bx]
+		push 	ax
+		call 	drawObject
+		dec 	cx
+		add	bx, 4
+		cmp 	cx, 0
+		jnz	@B
+		
+	; draw PIPE1	
+	mov 	cx, [nbrPIPES1]
+	mov	bx, 0
+	@@:
+		mov 	ax, offset PIPE1colour
+		push 	ax
+		mov 	ax, offset PIPE1
+		push 	ax
+		lea 	ax, [posPIPE1][bx]
+		push 	ax
+		call 	drawObject
+		dec 	cx
+		add	bx, 4
+		cmp 	cx, 0
+		jnz	@B
+		
+	; draw PIPE2	
+	mov 	cx, [nbrPIPES2]
+	mov	bx, 0
+	@@:
+		mov 	ax, offset PIPE2colour
+		push 	ax
+		mov 	ax, offset PIPE2
+		push 	ax
+		lea 	ax, [posPIPE2][bx]
+		push 	ax
+		call 	drawObject
+		dec 	cx
+		add	bx, 4
+		cmp 	cx, 0
+		jnz	@B
+		
+	call 	updateScreen
+	
+	; Draw strings
+	mov	ah, 10	; xcursor
+	mov	al, 1	; ycursor
+	push 	ax
+	lea	ax, msgScore	; adress message
+	push 	ax
+	call printString
+	
+	mov	ah, 22	; xcursor
+	mov	al, 1	; ycursor
+	push 	ax
+	lea	ax, msgHighScore	; adress message
+	push 	ax
+	call printString
+	
+	mov ah, 02h            			; select function 09h (set cursor)
+	mov  dh, 1        				; y position of cursor
+	mov  dl, 33      					; x position of cursor
+	xor   bh, bh       				; viode page 0
+	int 10h          					; set cursor
+	mov  ax, [highscore]
+	push  ax
+	call printInt
+	
+	mov	ah, 1	; xcursor
+	mov	al, 1	; ycursor
+	push 	ax
+	lea	ax, msgLevels	; adress message
+	push 	ax
+	call printString
+		
+	pop	es
+	pop	ds
+	pop	di
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bp
+	ret	0
+	
+drawBackground ENDP
+
 updateBall PROC NEAR
 
 	push ax
@@ -770,110 +825,10 @@ updateBall PROC NEAR
 	ret 0
 updateBall ENDP
 
-; Reads keyboard buffer and acts (returns non-zero if loop should end, 0 otherwise)
-handleInput PROC NEAR
-	push	es
-	push 	dx
-	push	bx
-	
-	mov	ax, seg __keysActive
-	mov	es, ax
-
-	xor	ah, ah
-	mov	al, es:[__keysActive]
-	cmp	al, 0
-	jz	@done		; no key pressed
-		
-	mov	al, es:[__keyboardState][SCANCODE_LEFT]	; test LEFT key
-	cmp	al, 0
-	jz @F	; jump next	
-	mov 	ax, 1
-	push 	ax
-	call 	movePaddle
-	
-	@@:
-	mov	al, es:[__keyboardState][SCANCODE_RIGHT]	; test RIGHT key
-	cmp	al, 0
-	jz @F	; jump next
-	mov	ax, 0
-	push	ax
-	call 	movePaddle
-
-	@@:
-	; finally, let's put the ESC key status as return value in AX
-	mov	al, es:[__keyboardState][SCANCODE_Q]	; test ESC
-	cmp	al, 0
-	jz @done	; jump next
-	call endGame
-			
-	@done:
-	pop 	bx
-	pop	dx
-	pop	es
-	ret 0
-handleInput ENDP
-
-movePaddle PROC NEAR
-; verzet de paddle naargelang de afstand tot de limieten
-; input: 1 --> linkerkant / 0 --> rechterkant
-	push	bp	
-	mov	bp, sp
-
-	push	ax
-	push	bx
-	push	cx
-	push	dx
-	push	di
-	push	es
-	
-	mov 	cx, [bp + 4] 
-	
-	; berekening van de afstand tot de limiet
-	mov 	ax, [posBAR][0]
-	cmp	cx, 0
-	jz	@F
-	sub 	ax, llimit
-	jmp movePaddle_compare
-	@@:
-	add	ax, [BAR][0]
-	sub	ax, rlimit
-	neg 	ax
-	
-	movePaddle_compare:
-	cmp ax, 0
-	jz movePaddle_done
-	mov	bx, speedBAR
-	cmp 	ax, bx
-	jge movePaddle_move
-	mov	bx, ax ; put bar to the edge
-	
-	movePaddle_move:
-	cmp	cx, 0
-	jz	@F
-	neg 	bx
-	@@:
-	add	[posBAR][0], bx
-
-	movePaddle_done:	
-	
-	pop	es
-	pop	di
-	pop	dx
-	pop	cx
-	pop	bx
-	pop	ax
-	; return
-	pop	bp
-
-	ret 2
-
-movePaddle ENDP
-
-; ==============================================================================
+; ------------------------------------------------------------
 ; HANDLE DETECTION
-; ==============================================================================
+; ------------------------------------------------------------
 
-; --- WALL DETECTION -----------------------------------------------------------
 wallDetection PROC NEAR
 ; detect collision at step n + 1
 
@@ -991,7 +946,6 @@ wallDetection_done:
 
 wallDetection ENDP
 
-; --- PADDLE DETECTION ---------------------------------------------------------
 paddleDetection PROC NEAR
 ; detecteert of er aanraking is met de paddle op stap + 1
 ; return afstand tot de paddle en boven/onder (of rechts/links)
@@ -1146,100 +1100,46 @@ brickDetection PROC NEAR
 	xposBRICK equ [bp + 4]
 	yposBRICK equ [bp + 6]
 	
-	;------------------
-	;BOVENKANT checken
-	;------------------
 
-    ;|Vergelijken of de bal erboven zit |
-    ;------------------------------------
-      
-	mov ax, [posBALL][2]      ;nieuwe positie y coordinaten berekenen
-	add ax, [speedBALL][2]     
+   ;|Vergelijken of de bal erboven zit |
+   ;------------------------------------
+	mov ax, [posBALL][2]			; y position of ball
+	add ax, [speedBALL][2]     ; next step (next position of the ball)
+	mov bx, ax
 	
-	add ax, [BALL][2]         ; y breedte van de bal
-	mov dx, yposBRICK
-	
-	cmp ax, dx                ; je vergelijk de hoogte van de bovenkant van bal met de onderkant van de brick
-	jl  brickDetection_done  ;jump to last want je weet dat de bal boven de blok zit
-	
-	
-    ;|Vergelijken of de bal binnen de breedte zit onder de hoogte|
-    ;-------------------------------------------------------------
-	mov ax, [posBALL][0]      ; x positie updaten
-	add ax, [speedBALL][0]
-	mov bx, ax                 ; ax opslagen  in bx , in bx zit dus de x positie  
-
-	
-	; eerste vergelijking ivm de positie van de brick en de bal : rechterlimiet
-	
-	
-	mov ax, xposBRICK          
-	dec ax                  ; limiet van de botsingszone
-	add ax, [BRICK][0]
-	cmp bx, ax
-	jg brickDetection_done   ;als de je buiten de zone van de rechterlimiet  bent mag je verder spelen
-	
-	
-	;tweede vergelijking ivm  de positie van de brick en de bal : linkerlimiet
-	
-	
-	mov ax, xposBRICK
-	inc ax                  ; limiet van de botsingszone
-	sub ax, [BALL][0]       ; trek de breedte van de bal eraf 
-	cmp bx, ax              ; positie van de bal  moet kleiner zijn  dan de linkerlimiet
-	jl brickDetection_done ;als het kleiner is dan de linkerlimiet dan zit je goed
-	 
-    ;-----------------
-	;ONDERKANT checken
-	;-----------------
-	
+	add ax, [BALL][2]        	; y witdh of ball
+	cmp ax, yposBRICK				; je vergelijk de hoogte van de bovenkant van bal met de onderkant van de brick
+	jl  brickDetection_done  	; jump to last want je weet dat de bal boven de blok zit
 	
 	;|Vergelijken of de bal eronderzit |
-    ;------------------------------------
-    
-    
-    
-	mov ax, [posBALL][2]      ;nieuwe positie y coordinaten berekenen
-	add ax, [speedBALL][2]     
-	
-	;add ax, [BALL][2]         ; y breedte van de bal
-	mov dx, yposBRICK
-	add dx, [BRICK][2]
-	cmp ax, dx                ; je vergelijk de hoogte van de bovenkant van bal met de onderkant van de brick
+   ;------------------------------------       
+	mov ax, yposBRICK
+	add ax, [BRICK][2]
+	cmp bx, ax                ; je vergelijk de hoogte van de bovenkant van bal met de onderkant van de brick
 	jg brickDetection_done    ;jump to last want je weet dat de bal onder de blok zit
-	
-	
-	;|Vergelijken of de bal binnen de breedte zit onder de basis |
-    ;-------------------------------------------------------------
-	
+		
+   ;|Vergelijken of de bal binnen de breedte zit onder de hoogte|
+   ;-------------------------------------------------------------
+	mov ax, [posBALL][0]       ; x position of ball
+	add ax, [speedBALL][0]		; next step (next position of the ball)
+	mov bx, ax                 ; ax opslagen  in bx , in bx zit dus de x positie  
 	
 	; eerste vergelijking ivm de positie van de brick en de bal : rechterlimiet
-	
-	
-	mov ax, xposBRICK           
-	dec ax                  ; limiet van de botsingszone
-	add ax, [BRICK][0]       
+	mov ax, xposBRICK          
+	add ax, [BRICK][0]
 	cmp bx, ax
-	jg brickDetection_done   ;als de je buiten de zone van de rechterlimiet  bent mag je verder spelen
+	jg brickDetection_done   	; als de je buiten de zone van de rechterlimiet  bent mag je verder spelen
 	
 	
 	;tweede vergelijking ivm  de positie van de brick en de bal : linkerlimiet
-	
-	
 	mov ax, xposBRICK
-	inc ax                  ; limiet van de botsingszone
-	sub ax, [BALL][0]       ; trek de breedte van de bal eraf 
-	cmp bx, ax              ; positie van de bal  moet kleiner zijn  dan de linkerlimiet
-	jl brickDetection_done ;als het kleiner is dan de linkerlimiet dan zit je goed
-	
-	
-	;nu weten we dat de bal zowiezo een collision heeft, nu is de vraag welke collision
-	;dit doen we door te kijken van waar dat de bal komt
-	
-	
-	mov ax, [posBall][0]    ;voorafgaande positie ball
-	mov bx, ax
-	;in bx zit voorgaande positie ball
+	sub ax, [BALL][0]       	; trek de breedte van de bal eraf 
+	cmp bx, ax              	; positie van de bal  moet kleiner zijn  dan de linkerlimiet
+	jl brickDetection_done 		; als het kleiner is dan de linkerlimiet dan zit je goed
+
+   ;|Collision is gevonden, bepaal nu de richting |
+   ;-------------------------------------------------------------
+	mov bx, [posBall][0]    ;voorafgaande positie ball
 	mov ax, xposBRICK
 	cmp ax, bx 
 	jg bricksidecollision
@@ -1248,17 +1148,17 @@ brickDetection PROC NEAR
 	cmp ax, bx
 	jl bricksidecollision
 	
-brickbasiscollision:
-	neg [speedBALL][2]   ; aanpassen van de speedvector
-	jmp deletebrick
+	brickbasiscollision:
+		neg [speedBALL][2]   ; aanpassen van de speedvector
+		jmp deletebrick
 	
-bricksidecollision:
-	neg [speedBALL][0]   ; aanpassen van de speedvector
+	bricksidecollision:
+		neg [speedBALL][0]   ; aanpassen van de speedvector
 	
-deletebrick:
-	xor ax, ax
-	mov	[bp + 8] , ax
-	add 	[SCORE], 10
+	deletebrick:
+		xor 	ax, ax
+		mov	[bp + 8] , ax
+		add 	[SCORE], 10
 
 brickDetection_done:
 	; We are done
@@ -1271,6 +1171,108 @@ brickDetection_done:
 	ret	4
 
 brickDetection ENDP
+
+; ------------------------------------------------------------
+; MOVE FUNCTIONS
+; ------------------------------------------------------------
+
+handleInput PROC NEAR
+	push	es
+	push 	dx
+	push	bx
+	
+	mov	ax, seg __keysActive
+	mov	es, ax
+
+	xor	ah, ah
+	mov	al, es:[__keysActive]
+	cmp	al, 0
+	jz	@done		; no key pressed
+		
+	mov	al, es:[__keyboardState][SCANCODE_LEFT]	; test LEFT key
+	cmp	al, 0
+	jz @F	; jump next	
+	mov 	ax, 1
+	push 	ax
+	call 	movePaddle
+	
+	@@:
+	mov	al, es:[__keyboardState][SCANCODE_RIGHT]	; test RIGHT key
+	cmp	al, 0
+	jz @F	; jump next
+	mov	ax, 0
+	push	ax
+	call 	movePaddle
+
+	@@:
+	; finally, let's put the ESC key status as return value in AX
+	mov	al, es:[__keyboardState][SCANCODE_Q]	; test ESC
+	cmp	al, 0
+	jz @done	; jump next
+	call endGame
+			
+	@done:
+	pop 	bx
+	pop	dx
+	pop	es
+	ret 0
+handleInput ENDP
+
+movePaddle PROC NEAR
+; verzet de paddle naargelang de afstand tot de limieten
+; input: 1 --> linkerkant / 0 --> rechterkant
+	push	bp	
+	mov	bp, sp
+
+	push	ax
+	push	bx
+	push	cx
+	push	dx
+	push	di
+	push	es
+	
+	mov 	cx, [bp + 4] 
+	
+	; berekening van de afstand tot de limiet
+	mov 	ax, [posBAR][0]
+	cmp	cx, 0
+	jz	@F
+	sub 	ax, llimit
+	jmp movePaddle_compare
+	@@:
+	add	ax, [BAR][0]
+	sub	ax, rlimit
+	neg 	ax
+	
+	movePaddle_compare:
+	cmp ax, 0
+	jz movePaddle_done
+	mov	bx, speedBAR
+	cmp 	ax, bx
+	jge movePaddle_move
+	mov	bx, ax ; put bar to the edge
+	
+	movePaddle_move:
+	cmp	cx, 0
+	jz	@F
+	neg 	bx
+	@@:
+	add	[posBAR][0], bx
+
+	movePaddle_done:	
+	
+	pop	es
+	pop	di
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+	; return
+	pop	bp
+
+	ret 2
+
+movePaddle ENDP
 
 moveBricks PROC NEAR
 
@@ -1391,85 +1393,83 @@ moveBrickHorz PROC NEAR
         
 moveBrickHorz ENDP
 
-
 moveBrickVert PROC NEAR
-                        
-        push        bp
-        mov        bp, sp
-        
 
-        push        ax
-        push        bx
-        push        cx
-        push        dx
-        push    si
+	push        bp
+	mov        bp, sp
+       
+	push        ax
+	push        bx
+	push        cx
+	push        dx
+	push    si
         
-        mov si, [bp + 4]
-        mov ax, [bp + 6]
+	mov si, [bp + 4]
+	mov ax, [bp + 6]
+            
+	sal si, 1	
+	sal si, 1
         
-        
-        ;si maal 4
-        sal si, 1
-        sal si, 1
-        
-        cmp al , 3
-        jne @F 
-        ; move up
-        mov         bx, [currentposBRICK]
-        mov        ax, [bx + 2][si]
-        mov        dx, ax
-        add        dx, [BRICK][2]
-        cmp        dx, ulimit
-        jge add1
-        mov         ax, blimit-120                ; if crossed set to the other edge
-        jmp saveNewpos
-        add1:
-                        push si
-                        mov si, [LEVEL]
-                        dec si
-                        sal si, 1
-                        mov        dx, [moveBrickspeed][si]
-                        sub ax, dx
-                        pop si
-        jmp saveNewpos
-        
-        @@:
-        ; move down
-        mov         bx, [currentposBRICK]
-        mov        ax, [bx + 2][si]
-        cmp         ax, blimit-70        ; check if brick crossed edge
-        jle add2
-        mov ax, ulimit                ; if crossed set to the other edge
-        sub        ax, [BRICK][2]
-        jmp saveNewpos
-        add2:
-                        push si
-                        mov si, [LEVEL]
-                        dec si
-                        sal si, 1
-                        mov        dx, [moveBrickspeed][si]
-                        add ax, dx
-                        pop si
-                
-        saveNewpos:
-                mov        [bx + 2][si], ax
-                
-        ; We are done
-        pop si
-        pop        dx
-        pop        cx
-        pop        bx
-        pop        ax
+	cmp al , 3	; 3: move up/ 4: move down
+	jne @F
+	 
+	; move up
+	mov	bx, [currentposBRICK]
+	mov	ax, [bx + 2][si]
+	mov  	dx, ax
+	add	dx, [BRICK][2]
+	cmp	dx, ulimit
+	jge add1
+	mov 	ax, blimit-120     	; if edge is crossed set to the other edge
+	jmp saveNewpos
+  	add1:
+		push	si
+		mov	si, [LEVEL]
+		dec	si
+		sal	si, 1
+		mov	dx, [moveBrickspeed][si]
+		sub	ax, dx
+		pop	si
+		jmp saveNewpos        
+	@@:
+	
+	; move down
+	mov	bx, [currentposBRICK]
+	mov  	ax, [bx + 2][si]
+	cmp 	ax, blimit-70        ; check if brick crossed edge
+	jle add2
+	mov	ax, ulimit        	; if edge is crossed set to the other edge
+	sub	ax, [BRICK][2]
+	jmp saveNewpos
+	add2:
+		push	si
+		mov	si, [LEVEL]
+		dec	si
+		sal	si, 1
+		mov	dx, [moveBrickspeed][si]
+		add	ax, dx
+		pop	si
 
-        ; return
-        pop        bp
-        ret        4
+		saveNewpos: ; copy position to array
+		mov 	[bx + 2][si], ax
+               
+	; We are done
+	pop si
+	pop	dx
+	pop	cx
+	pop	bx
+	pop	ax
+
+	; return
+	pop  	bp
+	ret 4
         
 moveBrickVert ENDP
 
-; --- DRAWING -------------------------------------
-; Draw a rectangle at the center of the screen buffer.
-; W, H passed on stack.
+; ------------------------------------------------------------
+; DRAW FUNCTIONS
+; ------------------------------------------------------------
+
 drawRECT PROC NEAR
 	push	bp
 	mov	bp, sp
@@ -1600,98 +1600,9 @@ drawObject Proc NEAR
 	ret	6
 drawObject ENDP
 
-endGame PROC NEAR
-	
-	push	bp
-	mov	bp, sp
-	
-	push	ax
-	push	bx
-	push	cx
-	push	dx
-	
- 	call clearScreenBuffer
- 	call updateScreen
-	
-	; Save score if highscore
-	call SaveHighscore
-	
-	; MENU
- 	mov	ah, 15	; xcursor
-	mov	al, 5	; ycursor
-	push 	ax
-	lea	ax, msgYScore	; adress message
-	push 	ax
-	call printString
-	
-	mov ah, 02h							; select function 09h (set cursor)
-	mov	dh, 7							; y position of cursor
-	mov	dl, 19 						; x position of cursor
-	xor 	bh, bh 						; viode page 0
-	int 10h	
-	mov	ax, [SCORE]
-	push  ax
-	call printInt
-	
- 	mov	ah, 7	; xcursor
-	mov	al, 16	; ycursor
-	push 	ax
-	lea	ax, msgNewgame	; adress message
-	push 	ax
-	call printString
-	
- 	mov	ah, 11	; xcursor
-	mov	al, 19	; ycursor
-	push 	ax
-	lea	ax, msgExit	; adress message
-	push 	ax
-	call printString
-	
-	
-	; wait for p to begin
-  	mov	ax, seg __keysActive
-  	mov	es, ax
-	@@:
-		mov	al, es:[__keyboardState][SCANCODE_ESC]
-		cmp	al, 0
-		jz	checkP
-		call endProgram
-		checkP:
-		mov	al, es:[__keyboardState][SCANCODE_P]
-		cmp	al, 0
-		je		@B
-	
-	pop	dx
-	pop	cx
-	pop	bx
-	pop	ax
-	
-	pop	bp
-	
-	call 	newGame
-	
-	ret 0
-	
-endGame ENDP
-
-endProgram PROC NEAR
-
-	; Restore original keyboard handler
-	call	uninstallKeyboardHandler
-
-	; Restore original video mode
-	mov		al, [oldVideoMode]
-	xor		ah, ah
-	push	ax
-	call	setVideoMode
-	
-	; Exit to DOS
-	mov		ax, 4c00h	; exit to DOS function, return code 00h
-	int		21h			; call DOS
-	
-	ret 0
-	
-endProgram ENDP
+; ------------------------------------------------------------
+; PRINT FUNCTIONS
+; ------------------------------------------------------------
 
 printInt PROC NEAR
 
@@ -1923,34 +1834,9 @@ printArkanoid PROC NEAR
 
 printArkanoid ENDP
 
-beep PROC NEAR
-
-	mov	al, 182 			; send command to PIT( Programmable Interval Timer)
-	out 43h, al				; to prepare speaker for the note
-	
-	; Set frequency
-	mov ax, 1521 			; f = 1193182 / x here x = 1521 and f = 783.00 (note = G)
-	out 42h, al 			; send LSB (by accessing channel 2 (controls PC speaker) of PIT)
-	mov al, ah				
-	out 42h, al				; send MSB
-	
-	; Turn on speaker
-	in al, 61h  			; get value of port 61h
-	or al, 00000011b 		; change last bits to 1
-	out 61h, al				; send value to port 61h
-	
-	; Pause
-	mov	cx, 1000000000
-	delay_loop:
-		loop	delay_loop
-	
-	; Turn off speaker
-	in al, 61h				; get value of port 61h
-	and al, 11111100b 	; change last bits to 0
-	out 61h, al				; send value to port 61h
-	
-	ret 0
-beep ENDP
+; ------------------------------------------------------------
+; SCORE FUNCTIONS
+; ------------------------------------------------------------
 
 SaveHighscore PROC NEAR
 	
@@ -2088,6 +1974,98 @@ SaveHighscore PROC NEAR
  	ret 0
 	
 SetHighscore ENDP
+
+; ------------------------------------------------------------
+; EXTRA FUNCTIONS
+; ------------------------------------------------------------
+
+fadeToBlack PROC NEAR
+	push	ax
+
+	mov	ax, seg palette
+	push	ax
+	mov	ax, offset palette
+	push	ax
+	call	paletteInitFade
+@@:	waitVBlank
+	call	paletteNextFade
+	test	ax, ax
+	jnz	@B
+
+	pop	ax
+	ret 0
+fadeToBlack ENDP
+
+calcSquareroot PROC NEAR
+; calculate the square root of ax 
+; Nexton formule f(x) = x^2 - S = 0 --> xn+1 = xn - f(xn)/f'(xn) = 1/2(xn + S/xn)
+; convergence if startvalue is close to root, take here ax
+	push 	bp
+	mov	bp, sp 
+	push	cx
+	push	dx
+	push	si
+	push	di
+	push	ds
+	push	es
+	
+	mov	si, [bp + 4]	; save S
+	calcSquarerootloop:
+		mov	bx, ax	; set next value
+		mov	ax, si
+		mov	cx , bx	
+		cwd		; sign extend to DX:AX (32-bit)
+		idiv	cx	; divide DX:AX by cx
+					; result in AX, remainder in DX
+		add	ax, bx
+		sar	ax, 1 ; divide ax by 2
+		cmp	bx, ax ; check convergence
+		jne	calcSquarerootloop
+	
+	pop	es
+	pop	ds
+	pop	di
+	pop	si
+	pop	dx
+	pop	cx
+	pop	bp
+	ret	2
+	
+calcSquareroot ENDP
+
+beep PROC NEAR
+
+	push ax
+	push cx
+
+	mov	al, 182 			; send command to PIT( Programmable Interval Timer)
+	out 43h, al				; to prepare speaker for the note
+	
+	; Set frequency
+	mov ax, 1521 			; f = 1193182 / x here x = 1521 and f = 783.00 (note = G)
+	out 42h, al 			; send LSB (by accessing channel 2 (controls PC speaker) of PIT)
+	mov al, ah				
+	out 42h, al				; send MSB
+	
+	; Turn on speaker
+	in al, 61h  			; get value of port 61h
+	or al, 00000011b 		; change last bits to 1
+	out 61h, al				; send value to port 61h
+	
+	; Pause
+	mov	cx, 1000000000
+	delay_loop:
+		loop	delay_loop
+	
+	; Turn off speaker
+	in al, 61h				; get value of port 61h
+	and al, 11111100b 	; change last bits to 0
+	out 61h, al				; send value to port 61h
+	
+	pop cx
+	pop ax
+	ret 0
+beep ENDP
 
 ; _------------------------------- END OF CODE ---------------------------------
 END main
