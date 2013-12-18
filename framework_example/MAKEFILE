@@ -1,17 +1,8 @@
-release: arkanoid.ASM VIDEO.OBJ KEYB.OBJ
-	ML /W3 /WX VIDEO.OBJ KEYB.OBJ arkanoid.ASM /Fe arkanoid.EXE
+release: arkanoid.ASM KEYB.OBJ
+	ML /W3 /WX KEYB.OBJ arkanoid.ASM /Fe arkanoid.EXE
 
-debug: arkanoid.ASM VIDEOD.OBJ KEYBD.OBJ
-	ML /Zi /W3 /WX VIDEOD.OBJ KEYBD.OBJ arkanoid.ASM /Fe arkanoidD.EXE
-
-VIDEO.OBJ: VIDEO.ASM
-	ML /c /W3 /WX /FoVIDEO.OBJ /Ta VIDEO.ASM
-	
-VIDEOD.OBJ: VIDEO.ASM
-	ML /c /Zi /W3 /WX /FoVIDEOD.OBJ /Ta VIDEO.ASM
-	
-RAND.OBJ: RAND.ASM
-	ML /c /W3 /WX /FoRAND.OBJ /Ta RAND.ASM
+debug: arkanoid.ASM KEYBD.OBJ
+	ML /Zi /W3 /WX KEYBD.OBJ arkanoid.ASM /Fe arkanoidD.EXE
 	
 KEYB.OBJ: KEYB.ASM
 	ML /c /W3 /WX /FoKEYB.OBJ /Ta KEYB.ASM

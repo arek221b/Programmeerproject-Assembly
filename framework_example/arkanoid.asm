@@ -25,9 +25,6 @@ main PROC NEAR
 	; -------------------------------------
 	; Install keyboard handler
 	call	installKeyboardHandler
-
-	; fade to black
-	call	fadeToBlack
 	
 	; set mode 13h
 	mov	ax, 13h
@@ -1979,22 +1976,26 @@ SetHighscore ENDP
 ; EXTRA FUNCTIONS
 ; ------------------------------------------------------------
 
-fadeToBlack PROC NEAR
-	push	ax
-
-	mov	ax, seg palette
-	push	ax
-	mov	ax, offset palette
-	push	ax
-	call	paletteInitFade
-@@:	waitVBlank
-	call	paletteNextFade
-	test	ax, ax
-	jnz	@B
-
-	pop	ax
-	ret 0
-fadeToBlack ENDP
+setVideoMode PROC FAR
+	push	bp				; save dynamic link
+	mov		bp, sp			; update bp
+	push	bx
+	
+	mov		ah, 0fh			; get current video mode in al
+	int		10h
+	
+	mov		bx, ax
+	
+	mov		ax, [bp + 6][0]	; get requested mode
+	xor		ah, ah			; function 0
+	int		10h
+	
+	mov		ax, bx
+	
+	pop		bx
+	pop		bp	
+	ret	2				; return
+setVideoMode ENDP
 
 calcSquareroot PROC NEAR
 ; calculate the square root of ax 
