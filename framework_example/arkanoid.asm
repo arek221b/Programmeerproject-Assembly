@@ -959,9 +959,9 @@ paddleDetection PROC NEAR
 	
 	; bereken volgende geval van de y-positie van de bal
 	mov ax, [posBALL][2]  
+	add ax, [speedBALL][2]   
 	cmp ax, [posBar][2] ; als de bal reeds onder de paddle zich bevindt dan er geen colission zijn
-	jg  paddleDetection_done
-	add ax, [speedBALL][2]     
+	jg  paddleDetection_done  
 	
 	; berekening van de offset (y) van de bal tot de bovenkant van de paddle
 	add ax, [BALL][2]         	; optellen van hoogte van de bal
