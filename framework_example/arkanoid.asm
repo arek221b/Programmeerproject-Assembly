@@ -1978,13 +1978,13 @@ SaveHighscore PROC NEAR
  	mov bx, ax ; put handle in BX
 	
  	; read from file
- 	mov  ah,3fh
- 	mov  cx,2
- 	lea  dx,[highscore]
+ 	mov  ah, 3fh
+ 	mov  cx, 2
+ 	lea  dx, [highscore]
  	int  21h
  	jnc  @F 	
 	;min highscore gewoon megeven zodanig score zowiezo wordt weggeschreven 
- 	mov highscore,0
+ 	mov highscore, 0
  	
 	@@:
  	;compare scores
