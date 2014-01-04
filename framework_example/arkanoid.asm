@@ -23,7 +23,6 @@ main PROC NEAR
 	
 	; INSTALLATION
 	; -------------------------------------
-	; Install keyboard handler
 	call	installKeyboardHandler
 	
 	; set mode 13h
@@ -54,6 +53,7 @@ main PROC NEAR
 	push 	ax
 	call printString
 	
+	; wait for input
   	mov	ax, seg __keysActive
   	mov	es, ax
 	@@:
@@ -78,12 +78,11 @@ main ENDP
 	
 newGame PROC NEAR
 	
-	mov	[LIFE], 3		; give maxlife
+	mov	[LIFE], 3		; give 3 lives
 	mov	[SCORE], 0		; set score zero
 	mov	[LEVEL], 1		; begin with level 1
-	mov	[MAXLIFE], 3
 	
-	call 	loadLevels
+	call 	loadLevels		; set bricks of all levels to the correct possition
 	call 	drawBackground
 	call	newLevel			; start new level
 	
@@ -118,10 +117,9 @@ newLevel PROC NEAR
 	
 	; select levelarrays
 	@@:
-	; calculate index  array (1 word elements)
-	sal 	ax, 1
-	sub	ax, 2 ; array starts at 0
-	mov	si, ax
+	sal 	ax, 1			; calculate index  array ( aary consist of 1 word elements)
+	sub	ax, 2 		; array starts at 0
+	mov	si, ax		; copy value to pointer register
 	mov 	ax, [colourBRICKs][si]
 	mov	[currentcolourBRICK], ax
 	mov 	ax, [nbrBRICKS][si]
@@ -131,9 +129,8 @@ newLevel PROC NEAR
 	mov 	ax, [stateBRICKS][si]
 	mov	[currentstateBRICKS], ax
 	
-	
 	; print level
-	mov	ah, 02h			; select function 09h (set cursor)
+	mov	ah, 02h			; select function 02h (set cursor)
 	mov	dh, 1				; y position of cursor
 	mov	dl, 7				; x position of cursor
 	xor 	bh, bh 			; viode page 0
@@ -146,7 +143,7 @@ newLevel PROC NEAR
 	
 	; set all bricks visible
 	mov	cx, [currentnbrBRICKS]
-	mov	si, 0										; array index number
+	mov	si, 0
 	@@:
 		mov	al, 1
 		mov	[currentvisBRICKS][si], al		; set visible (1: visible/ 0: invisible)
@@ -160,9 +157,10 @@ newLevel PROC NEAR
 	; BEGIN LEVEL
 	; -------------------------------------
 	
-	start_over:
-		call setInit						; set initial ball conditions		
-   	call updateScreenBuffer			; draw bricks/bar/ball/harts
+	begin_level:
+	mov [lostlife], 0
+	call setInit						; set initial ball conditions		
+   call updateScreenBuffer			; draw bricks/bar/ball/harts
 	
 	; print string (press P to begin)
  	mov	ah, 9	; xcursor
@@ -175,19 +173,8 @@ newLevel PROC NEAR
    mov	ax, seg __keysActive
    mov	es, ax
 	
-	; wait 1/8 sec (for smooth transition between levels)
+	; wait for input to begin
 	@@:
-	mov	ax, 00h
-	int	1ah	; read System-Timer Time Counter 
-	mov	ax, dx
-	add	ax, 1	; (12h = 18: 1 sec)
-	mov	[tik], ax
-	DELAY:
-		mov ax, 00h
-		int	1ah
-		cmp	[tik], dx
-		jge DELAY
-	
 	mov	al, es:[__keyboardState][SCANCODE_Q]
 	cmp	al, 0
 	jz	checkspace
@@ -197,38 +184,16 @@ newLevel PROC NEAR
 	cmp	al, 0
 	jnz DRAWloop
 	
-	; select level
-	cmp [SCORE], 0	; only switch between levels when new game
-	jne @B
-	checkpreviuoslevel:
-		mov	al, es:[__keyboardState][SCANCODE_LEFT]
-		cmp	al, 0
-		je checknextlevel
-		cmp 	[LEVEL], 1 ; if level 1 is selected then no previous
-		je checknextlevel
-		dec [LEVEL]
-		call newLevel
-	checknextlevel:
-		mov	al, es:[__keyboardState][SCANCODE_RIGHT]
-		cmp	al, 0
-		je	@B
-		mov	ax, [LEVEL]
-		cmp	ax, [nbrLEVELS]
-		je @B
-		inc [LEVEL]
-		call newLevel	
-
-start_over_decrement: 
-  dec [MAXLIFE]
-  jmp start_over
+	call selectLevel	; select level
+	jmp @B
 	
 ; BEGIN LEVEL
 ; -------------------------------------
 DRAWloop:
-
-	mov ax, [LIFE]
-	cmp ax, [MAXLIFE]
-	jne start_over_decrement
+	
+	; if live is lost start again
+	cmp [lostlife], 0
+	jnz begin_level
 	
 	call updateScreenBuffer	; draw bricks/bar/ball/harts
 	
@@ -240,7 +205,7 @@ DRAWloop:
 	
 	call wallDetection		; detect collision between ball and wall
 	
-	call moveBricks				; make the bricks move
+	call moveBricks			; make bricks move
 	
 	call handleInput			; handle userinput
 
@@ -248,12 +213,11 @@ DRAWloop:
 
 	mov [detected], 0			; prepare for new ball change
 	
-	; check if not death
+	; end game when LIFE = 0
 	cmp [LIFE], 0	
 	jnz DRAWloop
 	
-	; end game when LIFE = 0
-	call endGame
+	call endGame 	
 	
 	pop	es
 	pop	ds
@@ -290,7 +254,7 @@ endGame PROC NEAR
  	mov	ah, 15	; xcursor
 	mov	al, 5	; ycursor
 	push 	ax
-	lea	ax, msgYScore	; adress message
+	lea	ax, msgYScore	; adress of message
 	push 	ax
 	call printString
 	
@@ -410,10 +374,56 @@ loadLevels PROC NEAR
 
 loadLevels ENDP
 
+selectLevel PROC NEAR
+
+	push	ax
+	
+	; select level
+	cmp [SCORE], 0	; only switch between levels when new game
+	jne done
+	
+	; wait 1/18 sec (for smooth transition between levels)
+	mov	ax, 00h
+	int	1ah		; read system-timer time Counter 
+	mov	ax, dx
+	add	ax, 1		; (12h = 18: 1 sec)
+	mov	[tik], ax
+	
+	DELAY:
+		mov ax, 00h
+		int	1ah	; read system-timer time Counter 
+		cmp	[tik], dx
+		jge DELAY
+		
+	checkpreviouslevel:
+		mov	al, es:[__keyboardState][SCANCODE_LEFT]
+		cmp	al, 0
+		je checknextlevel
+		cmp 	[LEVEL], 1 ; if level 1 is selected then no previous
+		je checknextlevel
+		dec [LEVEL]
+		call newLevel
+	checknextlevel:
+		mov	al, es:[__keyboardState][SCANCODE_RIGHT]
+		cmp	al, 0
+		je	done
+		mov	ax, [LEVEL]
+		cmp	ax, [nbrLEVELS]
+		je done
+		inc [LEVEL]
+		call newLevel	
+		
+		done:
+		pop ax
+		ret 0
+
+selectLevel ENDP
+
 ; ------------------------------------------------------------
 ; SCREENBUFFER FUNCTIONS
 ; ------------------------------------------------------------
 
+; draw the bricks, harts, bar into screenbuffer
 updateScreenBuffer PROC NEAR
 	
 	call	clearGameBuffer
@@ -427,21 +437,24 @@ updateScreenBuffer PROC NEAR
 	call 	drawObject
 
 	; draw bricks
-	mov	di, 0
-	mov	si, 0
+	mov	di, 0	; pointer  of brick/color array
+	mov	si, 0	; pointer  of pos array
 	mov 	dx, 0 ; teller om te tellen ofdat er nog wel bricks op het speelveld zijn
 	drawBricksloop:
-		mov	al, [currentvisBRICKS][di]
+		; check if brick is deleted
+		mov	al, [currentvisBRICKS][di]	
 		cmp	al, 0
 		jz @F ; nextbrick
 		inc	dx
-		mov	ah, 0
-		mov	bx, [currentcolourBRICK]
+		
+		; draw brick
+		xor 	ah, ah
+		mov	bx, [currentcolourBRICK]	; get current brick color
 		mov	al, [bx][di]
 		push 	ax
 		lea	ax, [BRICK]
 		push 	ax
-		mov 	bx, [currentposBRICK]
+		mov 	bx, [currentposBRICK]		; get current brick position
 		lea	ax, [bx][si]
 		push 	ax
 		call 	drawRECT
@@ -458,8 +471,9 @@ updateScreenBuffer PROC NEAR
 	inc 	ax
 	mov [LEVEL], ax
 	call newLevel
-	@@:
+	
 	; draw bar
+	@@:
 	mov 	ax, offset BARcolour
 	push 	ax
 	mov 	ax, offset BAR
@@ -491,7 +505,7 @@ updateScreenBuffer PROC NEAR
 	
 updateScreenBuffer ENDP
 
-; Clears the screen buffer to color 0
+; Clears the screen buffer to color backgrColour
 clearScreenBuffer PROC NEAR
 	push	ax
 	push	cx
@@ -594,6 +608,7 @@ updateScreen PROC NEAR
 	ret		0
 updateScreen ENDP
 
+; Updates the game screen (screen between the limits) (copies contents from screenBuffer to screen) 
 updateGameScreen PROC NEAR
 	push	ax
 	push	cx
@@ -649,6 +664,7 @@ updateGameScreen ENDP
 ; BALL FUNCTIONS
 ; ------------------------------------------------------------
 
+; set the speed and position of the ball to the original settings
 setInit PROC NEAR
 	;initialisten van de vector
 	
@@ -674,6 +690,7 @@ setInit ENDP
 ; DRAW FUNCTIONS
 ; ------------------------------------------------------------
 
+; draw backgrounds element
 drawBackground PROC NEAR
 
 	push 	bp
@@ -924,7 +941,7 @@ wallDetection PROC NEAR
 	
 	; game over
 	dec [LIFE]						; LIFE = LIFE - 1
-	call setInit					; set initial conditions
+	mov [lostlife], 1
 
   	; -----------------------
   	; |   detection done		|
