@@ -46,6 +46,9 @@ installKeyboardHandler PROC FAR
 	xor		ax, ax
 	rep		stosw
 	
+	; redefine int 09h (this interupt is callled when key is pressed or realeased)
+	; ----------------------
+	
 	; store current handler
 	mov		ax, 3509h			; get current interrupt handler 09h
 	int		21h					; in ES:BX
@@ -124,7 +127,7 @@ keyboardHandler PROC FAR
 	in		al, KEY_CONTROL		; set the control register to reflect key was read
 	or		al, 82h				; set the proper bits to reset the keyboard flip flop
 	out		KEY_CONTROL, al		; send the new data back to the control register
-	and		al, 7fh				; mask off high bit
+	and		al, 7fh				; mask off high bit (7fh = 01111111)
 	out		KEY_CONTROL, al		; complete the reset
 	mov		al, 20h				; reset command
 	out		PIC_PORT, al		; tell PIC to re-enable interrupts
